@@ -98,6 +98,7 @@ let local_type types principal =
     (types: data_type list)                   (* Types *)
     (f : (ident * (int * bool)) list)         (* Functions *)
     (eq : (term * term) list)                 (* Equations *)
+    (form : (ident * (data_type list)) list)  (* Formats *)
     : msr_rule list =
 
     let p' = ("Dishonest", false)::p in
@@ -105,11 +106,10 @@ let local_type types principal =
     let r = init_rules e p in
     (* Printf.printf "global_type: \n%s\n" (toString g); *)
     List.map (fun (p, b) -> Printf.printf "%s\n" (rust_channel p (to_local_type g p))) p;
-    Printf.printf "%s\n" (rust_types types);
-    Printf.printf "\n";
-    Printf.printf "%s\n" (rust_functions f);
-    Printf.printf "\n";
-      List.map (fun (p, b) -> Printf.printf "%s\n\n" (rust_process p (to_local_type g p))) p;
+    Printf.printf "\n%s\n" (rust_types types);
+    Printf.printf "\n%s\n" (rust_formats form);
+    Printf.printf "\n%s\n" (rust_functions f types);
+      List.map (fun (p, b) -> Printf.printf "\n%s\n" (rust_process p (to_local_type g p))) p;
     (* Printf.printf "\n"; *)
     (* List.map (fun (p, b) -> Printf.printf "%s:\n%s\n\n" p (local_type g p)) p; *)
 
