@@ -32,7 +32,7 @@ program:
 fundef:
 // | f = ID; DIV; arity = NUM; LEFT_BRACE; DATA; RIGHT_BRACE { (f, (arity, true)) }
 // TODO Using terms here right now, properly should be something else - maybe a TYPE?
-| f = ID; LEFT_PAR; arity = term_list; RIGHT_PAR; ARROW; term { (f, (List.length arity, false)) }
+| f = ID; LEFT_PAR; params = data_type_list; RIGHT_PAR; ARROW; return_type = data_type { (f, (params, return_type, false)) }
 
 eqdef:
 | lhs = term; EQ; rhs = term { (lhs, rhs) }
@@ -68,6 +68,14 @@ term:
 term_list:
 | l = separated_list(COMMA, term)
   { l };
+
+data_type:
+  | name = ID
+    { DType(name) }
+
+data_type_list:
+  | l = separated_list(COMMA, data_type)
+    { l };
 
 pattern:
 | LEFT_PAR; p = pattern; RIGHT_PAR {p}
