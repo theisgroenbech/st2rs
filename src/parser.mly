@@ -8,7 +8,7 @@
 %token LEFT_PAR RIGHT_PAR LEFT_ANGLE RIGHT_ANGLE LEFT_BRACE RIGHT_BRACE LEFT_BRACK RIGHT_BRACK
 %token EQ AND OR NOT DIV
 %token NEW LET EVENT IN END MATCH WITH DATA
-%token PROBLEM PRINCIPALS KNOWLEDGE TYPES FUNCTIONS EQUATIONS PROTOCOL DISHONEST LEMMA
+%token PROBLEM PRINCIPALS KNOWLEDGE TYPES FUNCTIONS EQUATIONS FORMATS PROTOCOL DISHONEST LEMMA
 %token EOF
 
 %start <Types.problem option> program
@@ -25,14 +25,14 @@ program:
   TYPES; COLON; t = separated_list(COMMA, data_type); SEMI;
   FUNCTIONS; COLON; f = separated_list(COMMA, fundef); SEMI;
   EQUATIONS; COLON; e = separated_list(COMMA, eqdef); SEMI;
+  FORMATS; COLON; formats = separated_list(COMMA, format_def); SEMI;
   PROTOCOL; COLON; g = global_type;
   l = opt_lemm; EOF
   (* Add Lemma as string *)
-{ Some { name = n; principals = p; knowledge = k; types = t; functions = f; equations = e; protocol = g; lemm = l} };
+{ Some { name = n; principals = p; knowledge = k; types = t; functions = f; equations = e; formats = formats; protocol = g; lemm = l} };
 
 fundef:
 // | f = ID; DIV; arity = NUM; LEFT_BRACE; DATA; RIGHT_BRACE { (f, (arity, true)) }
-// TODO Using terms here right now, properly should be something else - maybe a TYPE?
 | f = ID; LEFT_PAR; params = data_type_list; RIGHT_PAR; ARROW; return_type = data_type { (f, (params, return_type, false)) }
 
 eqdef:
@@ -46,6 +46,10 @@ prindef:
     { name, true }
 | name = ID
     { name, false }
+
+format_def:
+| f = ID; LEFT_PAR; params = data_type_list; RIGHT_PAR { (f, params) }
+
 
 (* Choose? *)
 term:
