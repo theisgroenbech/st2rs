@@ -94,8 +94,13 @@ and process = function
 and rust_process principal proc =
   "fn " ^ String.lowercase principal ^ "(c: Chan<(), " ^ principal ^"<" ^ abstract_type ^ ">" ^ ">, "^functions_variable ^ ": &impl Interface<"^abstract_type^">) {\n" ^ process proc ^"\n}"
 
-and rust_types =
-  "type "^abstract_type^" = " ^ concrete_type ^ ";"
+and print_type t =
+  match t with
+  | DType dtype -> dtype
+
+and rust_types type_list =
+  let types = List.map (fun t -> "type "^ print_type t ^ " = " ^ concrete_type ^ ";") type_list in
+  String.concat "\n" (types)
 
 and rust_interface f =
   let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) [abstract_type] in

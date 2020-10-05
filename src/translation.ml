@@ -95,6 +95,7 @@ let local_type types principal =
     (p : (principal * bool) list)             (* Principals *)
     (k : (ident * principal) list)            (* Knowledge *)
     (g : global_type)                         (* Protocol *)
+    (types: data_type list)                   (* Types *)
     (f : (ident * (int * bool)) list)         (* Functions *)
     (eq : (term * term) list)                 (* Equations *)
     : msr_rule list =
@@ -104,7 +105,7 @@ let local_type types principal =
     let r = init_rules e p in
     (* Printf.printf "global_type: \n%s\n" (toString g); *)
     List.map (fun (p, b) -> Printf.printf "%s\n" (rust_channel p (to_local_type g p))) p;
-    Printf.printf "%s\n" (rust_types);
+    Printf.printf "%s\n" (rust_types types);
     Printf.printf "\n";
     Printf.printf "%s\n" (rust_functions f);
     Printf.printf "\n";
