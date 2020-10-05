@@ -55,6 +55,7 @@ rule read =
   | "Problem" { PROBLEM }
   | "Principals" { PRINCIPALS }
   | "Knowledge" { KNOWLEDGE }
+  | "Types"     { TYPES }
   | "Functions" { FUNCTIONS }
   | "Equations" { EQUATIONS }
   | "Protocol" { PROTOCOL }
