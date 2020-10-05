@@ -83,6 +83,7 @@ type problem = { name: ident;
                  types: data_type list;
                  functions: (ident * (data_type list * data_type * bool)) list;
                  equations: (term * term) list;
+                 formats: (ident * (data_type list)) list;
                  protocol: global_type;
                  lemm: lemma option}
 
