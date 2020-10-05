@@ -8,7 +8,7 @@
 %token LEFT_PAR RIGHT_PAR LEFT_ANGLE RIGHT_ANGLE LEFT_BRACE RIGHT_BRACE LEFT_BRACK RIGHT_BRACK
 %token EQ AND OR NOT DIV
 %token NEW LET EVENT IN END MATCH WITH DATA
-%token PROBLEM PRINCIPALS KNOWLEDGE FUNCTIONS EQUATIONS PROTOCOL DISHONEST LEMMA
+%token PROBLEM PRINCIPALS KNOWLEDGE TYPES FUNCTIONS EQUATIONS PROTOCOL DISHONEST LEMMA
 %token EOF
 
 %start <Types.problem option> program
@@ -22,12 +22,13 @@ program:
 | PROBLEM; COLON; n = ID; SEMI;
   PRINCIPALS; COLON; p = separated_list(COMMA, prindef); SEMI;
   k = opt_knowledge;
+  TYPES; COLON; t = separated_list(COMMA, data_type); SEMI;
   FUNCTIONS; COLON; f = separated_list(COMMA, fundef); SEMI;
   EQUATIONS; COLON; e = separated_list(COMMA, eqdef); SEMI;
   PROTOCOL; COLON; g = global_type;
   l = opt_lemm; EOF
   (* Add Lemma as string *)
-{ Some { name = n; principals = p; knowledge = k; functions = f; equations = e; protocol = g; lemm = l} };
+{ Some { name = n; principals = p; knowledge = k; types = t; functions = f; equations = e; protocol = g; lemm = l} };
 
 fundef:
 // | f = ID; DIV; arity = NUM; LEFT_BRACE; DATA; RIGHT_BRACE { (f, (arity, true)) }
