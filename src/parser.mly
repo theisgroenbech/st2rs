@@ -30,8 +30,9 @@ program:
 { Some { name = n; principals = p; knowledge = k; functions = f; equations = e; protocol = g; lemm = l} };
 
 fundef:
-| f = ID; DIV; arity = NUM; LEFT_BRACE; DATA; RIGHT_BRACE { (f, (arity, true)) }
-| f = ID; DIV; arity = NUM { (f, (arity, false)) }
+// | f = ID; DIV; arity = NUM; LEFT_BRACE; DATA; RIGHT_BRACE { (f, (arity, true)) }
+// TODO Using terms here right now, properly should be something else - maybe a TYPE?
+| f = ID; LEFT_PAR; arity = term_list; RIGHT_PAR; ARROW; term { (f, (List.length arity, false)) }
 
 eqdef:
 | lhs = term; EQ; rhs = term { (lhs, rhs) }
