@@ -102,16 +102,23 @@ and rust_types type_list =
   let types = List.map (fun t -> "type "^ print_type t ^ " = " ^ concrete_type ^ ";") type_list in
   String.concat "\n" (types)
 
-and rust_interface f =
-  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) [abstract_type] in
+and rust_interface f t =
+  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) (List.map (fun typ -> print_type typ) t) in
   "trait Interface<"^abstract_type^"> {\n" ^ indent ^ String.concat (";\n" ^indent) (functions (f @ freshTypeFunctions)) ^ ";\n}"
 
-and rust_impl_interface f =
-  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) [abstract_type] in
+and rust_impl_interface f t =
+  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) (List.map (fun typ -> print_type typ) t) in
   "impl Interface<"^abstract_type^"> for "^ interface_impl_name ^" {\n" ^ indent ^ String.concat (" { unimplemented!() }\n" ^indent) (functions (f @ freshTypeFunctions)) ^ "{ unimplemented!() }\n}"
 
-and rust_functions f =
-  rust_interface f ^ "\n\n" ^ "struct Functions {}\n\n" ^ rust_impl_interface f
+and print_format f =
+  match f with
+  | (name, data_types) -> indent ^ name ^ "(" ^ String.concat ", " (List.map (fun data -> print_type data) data_types) ^ ")"
+
+and rust_formats form =
+  "enum Formats {\n" ^ String.concat "\n," (List.map (fun format -> print_format format) form) ^ "\n}"
+
+and rust_functions f t =
+  rust_interface f t ^ "\n\n" ^ "struct Functions {}\n\n" ^ rust_impl_interface f t
 
 and rust_channel p t =
   "type " ^ p ^ "<" ^ abstract_type ^ ">" ^ " = " ^ channels t ^ ";"
