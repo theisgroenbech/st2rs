@@ -58,6 +58,7 @@ rule read =
   | "Types"     { TYPES }
   | "Functions" { FUNCTIONS }
   | "Equations" { EQUATIONS }
+  | "Formats" { FORMATS }
   | "Protocol" { PROTOCOL }
   | "Lemma"   { LEMMA }
   | "->"     { ARROW }
