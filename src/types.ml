@@ -4,7 +4,8 @@ type ident = string
 type tenv = (principal * ident list) list
 type lemma = string
 (* 1. Types *)
-
+type data_type =
+    DType of ident
 (* Terms *)
 type term =
     Var of ident
@@ -79,7 +80,7 @@ type prindis =
 type problem = { name: ident;
                  principals: (principal * bool) list;
                  knowledge: (ident * principal) list;
-                 functions: (ident * (int * bool)) list;
+                 functions: (ident * (data_type list * data_type * bool)) list;
                  equations: (term * term) list;
                  protocol: global_type;
                  lemm: lemma option}
