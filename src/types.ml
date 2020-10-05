@@ -80,6 +80,7 @@ type prindis =
 type problem = { name: ident;
                  principals: (principal * bool) list;
                  knowledge: (ident * principal) list;
+                 types: data_type list;
                  functions: (ident * (data_type list * data_type * bool)) list;
                  equations: (term * term) list;
                  protocol: global_type;
