@@ -27,9 +27,10 @@ let rec print_errors = function
 let parse_and_print lexbuf =
   match parse_with_error lexbuf with
   | Some { name = name; principals = p; knowledge = k; protocol = g; types = t; functions = f; equations = eq; formats = form;} ->
-    let f = ("fst", (1, false))::("snd", (1, false))::("pair", (2, false)):: (List.map (fun (id,(lst, rtn, bool)) ->  id,(List.length lst, bool)) f) in
+     let type_check_f = ("fst", (1, false))::("snd", (1, false))::("pair", (2, false)):: (List.map (fun (id,(lst, rtn, bool)) ->  id,(List.length lst, bool)) f) in
+
     let env = List.map (fun (p, x) -> p, []) p in
-    let errors = Typecheck.check g env [] f in
+    let errors = Typecheck.check g env [] type_check_f in
     let rules = translate name p k g t f eq form in
     ()
     (* print_errors errors; *)
