@@ -63,16 +63,17 @@ and createChannel env =
       | false -> "c"^(string_of_int i)
     in c 0
 
-and createArguments i =
-  let rec inner i =
-    match i with
-    0 -> []
-    | x -> ("a"^(string_of_int x) ^ ": " ^ "&" ^ abstract_type)::(createArguments (x-1)) in
-   List.rev (inner i)
+and createArguments (t:data_type list) =
+  let rec inner dt i =
+    match dt with
+      [] -> []
+    | x::xs -> ("a" ^(string_of_int i)^ ": " ^ "&" ^ show_dtype x)::(inner xs (i+1)) in
+  inner t 1
 
-and functions = function
+and functions (f : (ident * (data_type list * data_type * bool)) list) =
+    match f with
   | [] -> []
-  | (name,(arguments,bool)) :: tail -> ("fn " ^ name ^ "(" ^ (String.concat ", " ("&self"::createArguments arguments)) ^ ") -> " ^abstract_type) :: functions tail
+  | (name,(args,ret,bool)) :: tail -> ("fn " ^ name ^ "(" ^ (String.concat ", " ("&self"::createArguments args)) ^ ") -> " ^ show_dtype ret) :: functions tail
 
 and print ident term =
   "println!(\"" ^ ident ^ ": " ^ String.concat " " (List.map (fun t -> "{}") term) ^ "\", " ^ show_term_list term ^ ");\n"
@@ -103,12 +104,12 @@ and rust_types type_list =
   let types = List.map (fun t -> "type "^ print_type t ^ " = " ^ concrete_type ^ ";") type_list in
   String.concat "\n" (types)
 
-and rust_interface f t =
-  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) t in
+and rust_interface (f : (ident * (data_type list * data_type * bool)) list) t =
+  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, ([], typ, false))) t in
   "trait Interface<"^abstract_type^"> {\n" ^ indent ^ String.concat (";\n" ^indent) (functions (f @ freshTypeFunctions)) ^ ";\n}"
 
-and rust_impl_interface f t =
-  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) t in
+and rust_impl_interface (f : (ident * (data_type list * data_type * bool)) list) t =
+  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, ([], typ, false))) t in
   "impl Interface<"^abstract_type^"> for "^ interface_impl_name ^" {\n" ^ indent ^ String.concat (" { unimplemented!() }\n" ^indent) (functions (f @ freshTypeFunctions)) ^ "{ unimplemented!() }\n}"
 
 and print_format f =
