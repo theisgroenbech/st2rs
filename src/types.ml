@@ -34,7 +34,7 @@ let prin_to_ident x = (x : ident)
 
 (* Let bindings *)
 type let_bind =
-    New of ident * let_bind
+    New of ident * data_type * let_bind
   | Let of pattern * term * let_bind
   | Event of ident * term list * let_bind
   | LetEnd
@@ -121,7 +121,7 @@ and show_pattern_list = function
   | (x::xs) -> show_pattern x ^ ", " ^ show_pattern_list xs
 
 and show_let_bind = function
-    New(name, letb) -> "  " ^ "new " ^ name ^ ";\n" ^ show_let_bind letb
+    New(name, data_type, letb) -> "  " ^ "new " ^ name ^ ";\n" ^ show_let_bind letb
   | Let(p, t, letb) -> "let " ^ show_pattern p ^ " = " ^ show_term t ^ " in\n" ^ show_let_bind letb
   | LetEnd -> ""
 
