@@ -27,7 +27,7 @@ and show_pattern_list = function
   | (x::xs) -> show_pattern x ^ ", " ^ show_pattern_list xs
 
 and show_let_bind = function
-    New(name, letb) -> "  " ^ "new " ^ name ^ ";\n" ^ show_let_bind letb
+    New(name, data_type, letb) -> "  " ^ "new " ^ name ^ ";\n" ^ show_let_bind letb
   | Let(p, t, letb) -> "let " ^ show_pattern p ^ " = " ^ show_term t ^ " in\n" ^ show_let_bind letb
   | Event(ident, termList, let_bind) -> "EVENT"
   | LetEnd -> ""
@@ -37,7 +37,7 @@ and show_let_bind = function
 
 and local_let_bind types g =
   match types with
-      New(name, letb) -> LNew(name, local_let_bind letb g)
+      New(name, data_type, letb) -> LNew(name, local_let_bind letb g)
     | Let(p, t, letb) -> LLet(p, t, local_let_bind letb g)
     | LetEnd -> g
     | Event (ident, terms, letb) -> LEvent(ident, terms, local_let_bind letb g)
