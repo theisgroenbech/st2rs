@@ -56,13 +56,6 @@ and channels = function
   | LEvent (ident, term, local_type) -> channels local_type
   | _ -> "Eps"
 
-and createChannel env =
-    let rec c i =
-      match (List.exists ((=) ("c"^(string_of_int i))) env) with
-        true -> c (i+1)
-      | false -> "c"^(string_of_int i)
-    in c 0
-
 and createArguments (t:data_type list) =
   let rec inner dt i =
     match dt with
