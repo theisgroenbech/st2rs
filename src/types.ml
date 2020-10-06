@@ -63,7 +63,7 @@ type local_type =
   | LRecv of principal * pattern * term * local_type
   | LSelect of principal * (term * local_type) list
   | LBranch of principal * (pattern * local_type) list
-  | LNew of ident * local_type
+  | LNew of ident * data_type * local_type
   | LLet of pattern * term * local_type
   | LEvent of ident * term list * local_type
   | LDefLocal of ident * ident list * local_type * local_type
@@ -119,6 +119,10 @@ and show_pattern_list = function
     [] -> ""
   | [x] -> show_pattern x
   | (x::xs) -> show_pattern x ^ ", " ^ show_pattern_list xs
+
+and show_dtype t =
+  match t with
+  | DType dtype -> dtype
 
 and show_let_bind = function
     New(name, data_type, letb) -> "  " ^ "new " ^ name ^ ";\n" ^ show_let_bind letb
