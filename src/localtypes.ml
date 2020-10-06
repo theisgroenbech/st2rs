@@ -37,7 +37,7 @@ and show_let_bind = function
 
 and local_let_bind types g =
   match types with
-      New(name, data_type, letb) -> LNew(name, local_let_bind letb g)
+      New(name, data_type, letb) -> LNew(name, data_type, local_let_bind letb g)
     | Let(p, t, letb) -> LLet(p, t, local_let_bind letb g)
     | LetEnd -> g
     | Event (ident, terms, letb) -> LEvent(ident, terms, local_let_bind letb g)
@@ -99,7 +99,7 @@ and to_local_type global_type participant =
 and show_local_type local =
   match local with
     LSend(p, t, local_type) -> "out(" ^ show_term t  ^") \n"^ show_local_type local_type
-  | LNew (ident, local_type) -> "new " ^ ident ^ ";\n" ^ show_local_type local_type
+  | LNew (ident, data_type, local_type) -> "new " ^ ident ^ " : " ^ show_dtype data_type ^ ";\n" ^ show_local_type local_type
   | LLet (ident, term, local_type) -> "let " ^ show_pattern ident ^ " = " ^ show_term term ^ " in\n" ^ show_local_type local_type
   | LRecv (principal, pattern, term, local_type) -> "let "^ show_pattern pattern  ^" = in() \n"^ show_local_type local_type
   | _ -> "0."
