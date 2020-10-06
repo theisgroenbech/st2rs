@@ -24,7 +24,7 @@ open Rusttypes
           let e' = update q (binds pat@List.assoc q e) e in
           tr g' f (n+1) r'' e' df @ tr_branch gs' in
      Rule(b1, l1, e1, Fact("Out", [t])::Fact(f^"_"^p^"_"^string_of_int n, id_to_var env_p)::r1) :: tr_branch gs
-  | Compute(p, New(x, letb), g') ->
+  | Compute(p, New(x, data_type, letb), g') ->
      let Rule(b1, l1, e1, r1) = List.assoc p r in
      let r' = update p (Rule(b1, Fact("Fr", [Var x])::l1, e1, r1)) r in
      let e' = update p (x::List.assoc p e) e in
