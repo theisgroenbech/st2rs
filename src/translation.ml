@@ -108,7 +108,7 @@ let local_type types principal =
     List.map (fun (p, b) -> Printf.printf "%s\n" (rust_channel p (to_local_type g p))) p;
     Printf.printf "\n%s\n" (rust_types types);
     Printf.printf "\n%s\n" (rust_formats form);
-    (* Printf.printf "\n%s\n" (rust_functions f types); *)
+    Printf.printf "\n%s\n" (rust_functions f types);
       List.map (fun (p, b) -> Printf.printf "\n%s\n" (rust_process p (to_local_type g p))) p;
     (* Printf.printf "\n"; *)
     (* List.map (fun (p, b) -> Printf.printf "%s:\n%s\n\n" p (local_type g p)) p; *)
