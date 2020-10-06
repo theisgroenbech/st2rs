@@ -97,7 +97,7 @@ begin
   | None -> ["Principal " ^ p ^ " not defined", g]
   | Some(env_p) ->
     let rec let_bind env_p env = function
-      | New(x, lb) ->
+      | New(x, data_type, lb) -> (* TODO Implement check for data type *)
         let env_p' = (x::env_p) in
         let_bind env_p' (update p env_p' env) lb
       | Let(pat, t, lb) ->
