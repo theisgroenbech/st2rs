@@ -51,7 +51,7 @@ and pattern_list = function
 and channels = function
     LSend(p, t, local_type) -> "Send<" ^ term_as_type t ^ ", " ^ channels local_type ^ ">"
   | LRecv (principal, pattern, term, local_type) -> "Recv<" ^ term_as_type term ^", "^ channels local_type ^ ">"
-  | LNew (ident, local_type) -> channels local_type
+  | LNew (ident, data_type, local_type) -> channels local_type
   | LLet (ident, term, local_type) -> channels local_type
   | LEvent (ident, term, local_type) -> channels local_type
   | _ -> "Eps"
@@ -78,10 +78,11 @@ and print ident term =
   "println!(\"" ^ ident ^ ": " ^ String.concat " " (List.map (fun t -> "{}") term) ^ "\", " ^ show_term_list term ^ ");\n"
 
 and fresh t =
-  "fresh_" ^t
+  "fresh_" ^ show_dtype t
+
 and process = function
     LSend(p, t, local_type) -> indent ^ "let c = c.send(" ^ show_term t ^ ");\n" ^ process local_type
-  | LNew (ident, local_type) -> indent ^ "let " ^ ident ^ " = " ^ "f." ^ fresh abstract_type ^ "();\n" ^ process local_type
+  | LNew (ident, data_type, local_type) -> indent ^ "let " ^ ident ^ " = " ^ "f." ^ fresh data_type ^ "();\n" ^ process local_type
   | LLet (PMatch(ident), term, local_type) ->
     indent ^ "if " ^ show_term ident ^ " != " ^ show_term term ^ " { panic!(\"" ^show_term ident ^ " does not match " ^ show_term term  ^"\") };\n" ^ process local_type
     (* indent ^ "let " ^ show_term ident ^ " = " ^ show_term term ^ ";\n"^ *)
@@ -103,11 +104,11 @@ and rust_types type_list =
   String.concat "\n" (types)
 
 and rust_interface f t =
-  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) (List.map (fun typ -> print_type typ) t) in
+  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) t in
   "trait Interface<"^abstract_type^"> {\n" ^ indent ^ String.concat (";\n" ^indent) (functions (f @ freshTypeFunctions)) ^ ";\n}"
 
 and rust_impl_interface f t =
-  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) (List.map (fun typ -> print_type typ) t) in
+  let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, (0,false))) t in
   "impl Interface<"^abstract_type^"> for "^ interface_impl_name ^" {\n" ^ indent ^ String.concat (" { unimplemented!() }\n" ^indent) (functions (f @ freshTypeFunctions)) ^ "{ unimplemented!() }\n}"
 
 and print_format f =
