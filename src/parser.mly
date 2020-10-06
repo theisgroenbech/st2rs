@@ -98,8 +98,8 @@ pattern_list:
   { l };
 
 let_bind:
-| NEW; name = ID; SEMI; letb = let_bind
-  { New(name, letb) }
+| NEW; name = ID; COLON; data = data_type SEMI; letb = let_bind
+  { New(name, data, letb) }
 | LET; p = pattern; EQ; t = term; SEMI; letb = let_bind
   { Let(p, t, letb) }
 | EVENT; name = ID; LEFT_PAR; ts = term_list; RIGHT_PAR; SEMI; letb = let_bind
