@@ -58,6 +58,18 @@ and pattern_list = function
   | [x] -> pattern x
   | (x::xs) -> pattern x ^ ", " ^ pattern_list xs
 
+  and show_pattern = function
+      PVar(x) -> x
+    | PFunc(name, args) -> name ^ "(" ^ show_pattern_list args ^ ")"
+    | PForm(fname, args) -> show_format fname ^ "(" ^ show_pattern_list args ^ ")"
+    | PTuple(args) -> "<" ^ show_pattern_list args ^ ">"
+    | PMatch(t) -> "=" ^ show_term t
+
+  and show_pattern_list = function
+      [] -> ""
+    | [x] -> show_pattern x
+    | (x::xs) -> show_pattern x ^ ", " ^ show_pattern_list xs
+
 and channels = function
     LSend(p, t, local_type) -> "Send<" ^ term_as_type t ^ ", " ^ channels local_type ^ ">"
   | LRecv (principal, pattern, term, local_type) -> "Recv<" ^ term_as_type term ^", "^ channels local_type ^ ">"
@@ -89,9 +101,7 @@ and process = function
   | LNew (ident, data_type, local_type) -> indent ^ "let " ^ ident ^ " = " ^ "f." ^ fresh data_type ^ "();\n" ^ process local_type
   | LLet (PMatch(ident), term, local_type) ->
     indent ^ "if " ^ show_term ident ^ " != " ^ show_term term ^ " { panic!(\"" ^show_term ident ^ " does not match " ^ show_term term  ^"\") };\n" ^ process local_type
-    (* indent ^ "let " ^ show_term ident ^ " = " ^ show_term term ^ ";\n"^ *)
   | LLet (ident, term, local_type) -> indent ^ "let " ^ show_pattern ident ^ " = " ^ show_term term ^ ";\n" ^ process local_type
-  | LRecv (principal, pattern, Form(name, args), local_type) ->  indent ^ "let (c, " ^ show_format name ^ "(" ^ show_pattern pattern ^")) = c.recv();\n" ^ process local_type
   | LRecv (principal, pattern, term, local_type) ->  indent ^ "let (c, " ^ show_pattern pattern ^") = c.recv();\n" ^ process local_type
   | LLocalEnd -> indent ^ "c.close();"
   | LEvent (ident, term, local_type) -> indent ^ print ident term^ process local_type
