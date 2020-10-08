@@ -32,7 +32,7 @@ let rec check_term (env: ident list) (funs: (ident * (int * bool)) list) : term 
   | Func(f, args) ->
     check_func f args false funs @
     List.concat (List.map (check_term env funs) args)
-  | Form(f, args) -> [] (* TODO Format typechecking *) 
+  | Form(f, args) -> [] (* TODO Format typechecking *)
   | Tuple(l) ->
       List.concat(List.map (check_term env funs) l) (* recursively checks terms with their env and funcs, concat = flattens map *)
   | Eq(t1, t2) | And(t1, t2) | Or(t1, t2) ->
@@ -46,6 +46,7 @@ let rec check_pattern env funs = function
                else [x ^ " already defined in pattern"]
   | PMatch(t) ->
       check_term env funs t
+  | PForm(f, args) -> [] (* TODO Format typechecking *) 
   | PFunc(f, args) ->
     check_func f args true funs @
       List.concat (List.map (check_pattern env funs) args)
