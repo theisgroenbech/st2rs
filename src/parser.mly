@@ -92,6 +92,8 @@ pattern:
   { PMatch(t) }
 | name = ID; LEFT_PAR; pargs = pattern_list; RIGHT_PAR
   { PFunc(name, pargs) }
+| name = ID; LEFT_ANGLE; pargs = pattern_list; RIGHT_ANGLE
+  { PForm(name, pargs) }
 | LEFT_ANGLE; pargs = pattern_list; RIGHT_ANGLE
   { PTuple(pargs) }
 
