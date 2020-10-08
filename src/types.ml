@@ -20,7 +20,7 @@ type term =
 (* Pattern *)
 type pattern =
     PVar of ident
-  | PForm of ident * pattern
+  | PForm of ident * pattern list
   | PMatch of term
   | PFunc of ident * pattern list
   | PTuple of pattern list
@@ -44,7 +44,7 @@ type let_bind =
 let rec binds = function
     PVar x -> [x]
   | PMatch t -> []
-  | PFunc(_, args) | PTuple args -> List.concat (List.map binds args)
+  | PFunc(_, args) | PForm(_, args) | PTuple args -> List.concat (List.map binds args)
 
 (* Channel options / Bullet notation
 type channel_options = { authentic: bool; secret: bool }
@@ -114,6 +114,7 @@ and show_term_list = function
 and show_pattern = function
     PVar(x) -> x
   | PFunc(name, args) -> name ^ "(" ^ show_pattern_list args ^ ")"
+  | PForm(name, args) -> name ^ "(" ^ show_pattern_list args ^ ")"
   | PTuple(args) -> "<" ^ show_pattern_list args ^ ">"
   | PMatch(t) -> "=" ^ show_term t
 
