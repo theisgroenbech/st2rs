@@ -7,6 +7,8 @@ let pair = "pair"
 let pair_function = functions_variable ^ "." ^ pair
 let indent = "    "
 let interface_impl_name = "Functions"
+let enum_func =  "::I"
+
 let rec show_term_pair = function
     [] -> ""
   | [x] -> "" ^ show_term x (* In all cases we want to lend the value *)
@@ -15,13 +17,20 @@ let rec show_term_pair = function
 and show_term = function
     Var(x) -> x
   | Func(name, args) -> functions_variable ^ "." ^ name ^ "(" ^ show_term_list args ^ ")"
+  | Form(name, args) -> show_format name ^ "(" ^ show_term_list_without_lending args ^ ")"
   | Tuple(args) -> show_term_pair args
   | Eq(t1, t2) -> show_term t1 ^ " = " ^ show_term t2
   | And(t1, t2) -> show_term t1 ^ " & " ^ show_term t2
   | Or(t1, t2) -> show_term t1 ^ " | " ^ show_term t2
   | Not(t) -> "~" ^ show_term t
 
+and show_format name = name ^enum_func
 (* List options: empty, single item, list *)
+and show_term_list_without_lending = function
+    [] -> ""
+  | [x] -> "" ^ show_term x (* In all cases we want to lend the value *)
+  | (x::xs) ->  "" ^ show_term x ^ ", " ^ show_term_list xs
+
 and show_term_list = function
     [] -> ""
   | [x] -> "&" ^ show_term x (* In all cases we want to lend the value *)
@@ -30,6 +39,7 @@ and show_term_list = function
 let rec term_as_type = function
     Var(x) -> abstract_type
   | Func(name, args) -> abstract_type (*name ^ "(" ^ get_term_as_type_channel_list args ^ ")"*)
+  | Form(name, args) -> name
   | Tuple(args) -> "(" ^ term_as_type_list args ^ ")"
 
 and term_as_type_list = function
@@ -81,13 +91,14 @@ and process = function
     indent ^ "if " ^ show_term ident ^ " != " ^ show_term term ^ " { panic!(\"" ^show_term ident ^ " does not match " ^ show_term term  ^"\") };\n" ^ process local_type
     (* indent ^ "let " ^ show_term ident ^ " = " ^ show_term term ^ ";\n"^ *)
   | LLet (ident, term, local_type) -> indent ^ "let " ^ show_pattern ident ^ " = " ^ show_term term ^ ";\n" ^ process local_type
+  | LRecv (principal, pattern, Form(name, args), local_type) ->  indent ^ "let (c, " ^ show_format name ^ "(" ^ show_pattern pattern ^")) = c.recv();\n" ^ process local_type
   | LRecv (principal, pattern, term, local_type) ->  indent ^ "let (c, " ^ show_pattern pattern ^") = c.recv();\n" ^ process local_type
   | LLocalEnd -> indent ^ "c.close();"
   | LEvent (ident, term, local_type) -> indent ^ print ident term^ process local_type
   | _ -> "0."
 
 and rust_process principal proc =
-  "fn " ^ String.lowercase principal ^ "(c: Chan<(), " ^ principal ^"<" ^ abstract_type ^ ">" ^ ">, "^functions_variable ^ ": &impl Interface<"^abstract_type^">) {\n" ^ process proc ^"\n}"
+  "fn " ^ String.lowercase principal ^ "(c: Chan<(), " ^ principal ^ ">, "^functions_variable ^ ": &impl Interface" ^") {\n" ^ process proc ^"\n}"
 
 and print_type t =
   match t with
