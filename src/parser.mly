@@ -57,6 +57,8 @@ term:
   { Var(name) }
 | name = ID; LEFT_PAR; args = term_list; RIGHT_PAR
   { Func(name, args) }
+| name = ID; LEFT_ANGLE; args = term_list; RIGHT_ANGLE
+  { Form(name, args) }
 | LEFT_ANGLE; args = term_list; RIGHT_ANGLE
   { Tuple(args) }
 | t1 = term; EQ; t2 = term
