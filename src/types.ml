@@ -10,6 +10,7 @@ type data_type =
 type term =
     Var of ident
   | Func of ident * term list
+  | Form of ident * term list
   | Tuple of term list
   | Eq of term * term
   | And of term * term
@@ -19,6 +20,7 @@ type term =
 (* Pattern *)
 type pattern =
     PVar of ident
+  | PForm of ident * pattern
   | PMatch of term
   | PFunc of ident * pattern list
   | PTuple of pattern list
