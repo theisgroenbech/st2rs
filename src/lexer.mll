@@ -38,6 +38,7 @@ rule read =
   | '|'      { OR }
   | '~'      { NOT }
   | '/'      { DIV }
+  | '+'      { PLUS }
   | ':'      { COLON }
   | ';'      { SEMI }
   | '@'      { AT }

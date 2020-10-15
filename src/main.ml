@@ -2,6 +2,9 @@ open Lexer
 open Lexing
 open Printf
 open Translation
+open Rusttypes
+open Typecheck
+open Localtypes
 
 let print_position outx lexbuf =
   let pos = lexbuf.lex_curr_p in
@@ -23,26 +26,21 @@ let rec print_errors = function
     print_errors err
   | [] -> ()
 
-
-let parse_and_print lexbuf =
-  match parse_with_error lexbuf with
-  | Some { name = name; principals = p; knowledge = k; protocol = g; types = t; functions = f; equations = eq; formats = form;} ->
-     let type_check_f = ("fst", (1, false))::("snd", (1, false))::("pair", (2, false)):: (List.map (fun (id,(lst, rtn, bool)) ->  id,(List.length lst, bool)) f) in
-
-    let env = List.map (fun (p, x) -> p, []) p in
-    let errors = Typecheck.check g env [] type_check_f in
-    let rules = translate name p k g t f eq form in
-    ()
-    (* print_errors errors; *)
-    (* printf "%s\n" (Types.show_global_type g); *)
-    (* printf "theory %s\nbegin\nfunctions: %s\nequations: %s\n\n%s\nend\n" name (Types.show_fdefs f) (Types.show_eqdefs eq) (Types.show_rules 1 rules) *)
-  | None -> ()
-
-let loop filename () =
+let main = 
+  let filename = Sys.argv.(1) in
   let inx = open_in filename in
   let lexbuf = Lexing.from_channel inx in
   lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
-  parse_and_print lexbuf;
+  let action = if Array.length Sys.argv > 2 then Sys.argv.(2) else "translate" in
+  let f = match action with
+  | "tamarin" -> translate
+  | "rust" -> rust_output
+  | "typecheck" -> typecheck
+  | "projection" -> projection
+  | "mscgen" -> Types.mscgen
+  | _ -> fun x -> ()
+  in
+  match parse_with_error lexbuf with
+  | Some p -> f p
+  | None -> ();
   close_in inx
-
-let main = loop (Sys.argv.(1)) ()

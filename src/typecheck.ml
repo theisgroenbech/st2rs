@@ -1,5 +1,3 @@
-(* https://github.com/SOwens/example-compiler  - guide in compilers in OCaml *)
-
 open Types
 
 type resultOrError =
@@ -19,14 +17,15 @@ let rec add_params_to_env env = function
 let check_func f args is_pattern funs =
   match List.assoc_opt f funs with
     | None -> [f ^ " not defined"]
-    | Some((n_args, data_fun)) ->
+    | Some((targs, tres, data_fun)) ->
+      let n_args = List.length targs in
       if List.length args <> n_args then
       ["Wrong number of parameters in " ^ f] (* Types.show_term (Func(f,args)) instead of f *)
       else [] @
       if is_pattern && not data_fun then [f ^ " is not a data function"] else []
 
 (* Checks if term: exists, check_func, return list of errors *)
-let rec check_term (env: ident list) (funs: (ident * (int * bool)) list) : term -> string list = function
+let rec check_term (env: ident list) (funs: (ident * (data_type list * data_type * bool)) list) : term -> string list = function
   | Var(x) -> if List.mem x env then [] (* List.mem x -> if x exists = true *)
               else [x ^ " not defined"]
   | Func(f, args) ->
@@ -53,12 +52,18 @@ let rec check_pattern env funs = function
   | PTuple(l) ->
       List.concat(List.map (check_pattern env funs) l)
 
+let rec typecheck (pr:problem): unit = 
+  let p' = ("Dishonest", false)::pr.principals in
+  let e = List.map (fun (p, x) -> p, initial_knowledge p [] pr.knowledge) pr.principals in
+  let messages = check pr.protocol e [] pr.functions in
+  List.iter (fun (txt, ty) ->
+    Printf.printf "Error: %s at %s" txt (show_global_type_nr ty)) messages
 (* Checks global types, return list of errors *)
-let rec check
+and check
   (g : global_type)                             (* Global type *)
   (env : tenv)                                  (* each princ. with their known var, as a list *)
   (def : (ident * ((ident * principal) list * global_type)) list)   (* function name, it's env and the global type *)
-  (funs : (ident * (int * bool)) list)          (* function name, number of args, data type *)
+  (funs : (ident * (data_type list * data_type * bool)) list)          (* function name, number of args, data type *)
   : (string * global_type) list                 (* error messages and where in code *)
    =
 
