@@ -1,8 +1,9 @@
 open Types
-open Localtypes
 open Rusttypes
+open Localtypes
+open Printf
 (* global_type, ID, N, (prin -> Rule), (prin -> [VAR]), (ID -> [VAR, prin]) = return Rule*)
- let rec tr g f n r e df =
+let rec tr g f n r e df =
   match g with
   | Send(p, q, x, t, g') ->
      let Rule(b1, l1, e1, r1) = List.assoc p r in
@@ -62,11 +63,6 @@ open Rusttypes
 
 (************************************************************)
 
-  let rec initial_knowledge p e = function
-    | [] -> e
-    | (t', p') :: t ->
-      if p' = p then initial_knowledge p (t'::e) t
-      else initial_knowledge p e t
 
 let init_rules e p =
   let rec dishonest e r n = function
@@ -90,27 +86,9 @@ let toString (g : global_type) =
 let local_type types principal =
   show_local_type (to_local_type types principal)
 
-  let translate
-    (name : ident)                            (* Name *)
-    (p : (principal * bool) list)             (* Principals *)
-    (k : (ident * principal) list)            (* Knowledge *)
-    (g : global_type)                         (* Protocol *)
-    (types: data_type list)                   (* Types *)
-    (f : (ident * (data_type list * data_type * bool)) list)(* Functions *)
-    (eq : (term * term) list)                 (* Equations *)
-    (form : (ident * (data_type list)) list)  (* Formats *)
-    : msr_rule list =
-
-    let p' = ("Dishonest", false)::p in
-    let e = List.map (fun (p, x) -> p, initial_knowledge p [] k) p' in
-    let r = init_rules e p in
-    (* Printf.printf "global_type: \n%s\n" (toString g); *)
-    List.map (fun (p, b) -> Printf.printf "%s\n" (rust_channel p (to_local_type g p))) p;
-    Printf.printf "\n%s\n" (rust_types types);
-    Printf.printf "\n%s\n" (rust_formats form);
-    Printf.printf "\n%s\n" (rust_functions f types);
-      List.map (fun (p, b) -> Printf.printf "\n%s\n" (rust_process p (to_local_type g p))) p;
-    (* Printf.printf "\n"; *)
-    (* List.map (fun (p, b) -> Printf.printf "%s:\n%s\n\n" p (local_type g p)) p; *)
-
-    tr g name 0 r e []
+let translate (pr:problem): unit =
+  let p' = ("Dishonest", false)::pr.principals in
+  let e = List.map (fun (p, x) -> p, initial_knowledge p [] pr.knowledge) p' in
+  let r = init_rules e pr.principals in
+  let rules = tr pr.protocol pr.name 0 r e [] in
+  printf "theory %s\nbegin\nfunctions: %s\nequations: %s\n\n%s\nend\n" pr.name (Types.show_fdefs pr.functions) (Types.show_eqdefs pr.equations) (Types.show_rules 1 rules)

@@ -1,3 +1,4 @@
+open Printf
 
 type principal = string
 type ident = string
@@ -130,6 +131,7 @@ and show_dtype t =
 and show_let_bind = function
     New(name, data_type, letb) -> "  " ^ "new " ^ name ^ ";\n" ^ show_let_bind letb
   | Let(p, t, letb) -> "let " ^ show_pattern p ^ " = " ^ show_term t ^ " in\n" ^ show_let_bind letb
+  | Event(f, args, letb) -> "event " ^ f ^ "("^ show_term_list args ^ ")\n" ^ show_let_bind letb
   | LetEnd -> ""
 
 (*
@@ -202,8 +204,8 @@ let rec show_rules n = function
 
 let rec show_fdefs = function
     [] -> ""
-  | [f, (n, _)] -> f ^ "/" ^ string_of_int n
-  | (f, (n, _))::fs -> f ^ "/" ^ string_of_int n ^", "^show_fdefs fs
+  | [f, (args_t, res_t, _)] -> f ^ "/" ^ string_of_int (List.length args_t)
+  | (f, (args_t, res_t, _))::fs -> f ^ "/" ^ string_of_int (List.length args_t) ^", "^show_fdefs fs
 
 let rec show_eqdefs = function
     [] -> ""
@@ -219,3 +221,38 @@ let rec update x y = function
     else (x', y')::update x y l
   | _ -> raise Lookup_failure;;
   (* env' = update q (x::env_q) env *)
+
+
+let rec initial_knowledge p e = function
+  | [] -> e
+  | (t', p') :: t ->
+    if p' = p then initial_knowledge p (t'::e) t
+    else initial_knowledge p e t
+
+let rec print_sep = function
+| [] -> ()
+| [x] -> printf "%s" x
+| (x::xs) -> printf "%s, " x; print_sep xs
+
+let mscgen (pr:problem): unit =
+  let last l = List.nth l (List.length l - 1) in
+  let rec mscglobal = function
+  | Send(p, q, x, t, g) -> p ^ "->" ^ q ^ " [label=\"" ^ x ^ " = " ^ show_term t ^ "\"];\n" ^ mscglobal g
+  | Branch(p, q, t, branches) ->
+    let rec mscbranches = function
+    | [] -> ""
+    | ((pat, g)::branches) ->
+      p ^ "->" ^ q ^ " [label=\"" ^ show_term t ^ " = " ^ show_pattern pat ^ "];\n " ^ mscglobal g ^ "---;\n" ^ mscbranches branches
+    in "---;\n" ^ mscbranches branches ^ "\n"
+  | Compute(p, letb, g) ->
+    p ^" box "^p^ " [label=\"" ^ show_let_bind letb ^ "\"];\n" ^ mscglobal g
+  | DefGlobal(name, params, g, g') ->
+    fst (List.hd pr.principals) ^ " alt " ^ fst(last pr.principals) ^" [label=\""^name ^ "("^show_params params^")\"] {\n" ^ mscglobal g ^ "\n};\n"^mscglobal g'
+  | CallGlobal(name, params) -> "\n" (* TODO: replace with a proper call *)
+  | GlobalEnd -> "\n"
+  in
+  printf "msc {\n";
+  print_sep ((List.map fst) pr.principals);
+  printf ";\n";
+  printf "%s\n" (mscglobal pr.protocol);
+  printf "}\n"

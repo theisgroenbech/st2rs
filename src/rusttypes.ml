@@ -1,4 +1,5 @@
 open Types
+open Localtypes
 
 let abstract_type = "T"
 let concrete_type = "/* unimplemented */"
@@ -138,3 +139,12 @@ and rust_functions f t =
 
 and rust_channel p t =
   "type " ^ p ^ "<" ^ abstract_type ^ ">" ^ " = " ^ channels t ^ ";"
+
+
+let rust_output (pr:problem) : unit =
+  List.map (fun (p, b) -> 
+    Printf.printf "%s\n" (rust_channel p (to_local_type pr.protocol p))) pr.principals;
+  Printf.printf "\n%s\n" (rust_types pr.types);
+  Printf.printf "\n%s\n" (rust_formats pr.formats);
+  Printf.printf "\n%s\n" (rust_functions pr.functions pr.types);
+  List.iter (fun (p, b) -> Printf.printf "\n%s\n" (rust_process p (to_local_type pr.protocol p))) pr.principals;

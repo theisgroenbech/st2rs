@@ -131,3 +131,7 @@ and show_params = function
     [] -> ""
   | [(x, p)] -> x ^ " @ " ^ p
   | ((x, p)::xs) -> x ^ " @ " ^ p ^ ", " ^ show_params xs
+
+let projection (pr:problem): unit =
+  List.iter (fun (p, b) -> 
+    Printf.printf "let %s = %s\n" p (show_local_type (to_local_type pr.protocol p))) pr.principals
