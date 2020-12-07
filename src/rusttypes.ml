@@ -122,6 +122,11 @@ and rust_types type_list =
   let types = List.map (fun t -> "type "^ print_type t ^ " = " ^ concrete_type ^ ";") type_list in
   String.concat "\n" (types)
 
+and rust_a_types type_list =
+  let types = List.map (function DAType(s1,s2) -> "#[derive(Serialize, Deserialize)]\npub struct " ^ s1 ^ "<" ^ s2 ^">(Vec<u8>, PhantomData<T>);") type_list in
+  String.concat "\n" (types)
+
+
 and rust_interface (f : (ident * (data_type list * data_type * bool)) list) t =
   let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, ([], typ, false))) t in
   "trait Interface {\n" ^ indent ^ String.concat (";\n" ^indent) (functions (f @ freshTypeFunctions)) ^ ";\n}"
@@ -148,8 +153,11 @@ and rust_channel p t =
 let rust_output (pr:problem) : unit =
   Printf.printf "%s\n" (rust_handwritten);
   List.map (fun (p, b) ->
-    Printf.printf "%s\n" (rust_channel p (to_local_type pr.protocol p))) pr.principals;
-  Printf.printf "\n%s\n" (rust_types pr.types);
+      Printf.printf "%s\n" (rust_channel p (to_local_type pr.protocol p))) pr.principals;
+  let abstract_types = List.filter_map (function DAType(s1,s2) -> Some(DAType(s1,s2)) | _ -> None) pr.types in
+  let concrete_types = List.filter_map (function DType(s1) -> Some(DType(s1)) | _ -> None) pr.types in
+  Printf.printf "\n%s\n" (rust_a_types abstract_types);
+  Printf.printf "\n%s\n" (rust_types concrete_types);
   Printf.printf "\n%s\n" (rust_formats pr.formats);
-  Printf.printf "\n%s\n" (rust_functions pr.functions pr.types);
+  Printf.printf "\n%s\n" (rust_functions pr.functions concrete_types);
   List.iter (fun (p, b) -> Printf.printf "\n%s\n" (rust_process p (to_local_type pr.protocol p))) pr.principals;

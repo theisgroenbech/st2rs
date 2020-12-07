@@ -2,6 +2,12 @@ open Rusttypes2
 open Types
 open Rustprinter
 
+let next_var =
+  let private_counter = ref (-1) in
+  fun () ->
+    private_counter := !private_counter + 1;
+    "v"^string_of_int(!private_counter)
+
 let indent = "    "
 let abstract_traits = ":Serialize + DeserializeOwned"
 
@@ -17,10 +23,12 @@ let rec translateTerm = function
   | Not(t) -> "~" ^ show_term t *)
   | _ -> Id(ID("TERM"))
 
-and translatePattern = function
-    PVar(x) -> ID(x)
-  | PForm(fname, args) -> ID(fname)
-  | _ -> ID("PATTERN")
+and translatePattern pat (conditions : (term * term) list) =
+  match pat with
+    PVar(x) -> (ID(x), conditions)
+  | PForm(fname, args) -> (ID(fname), conditions)
+  (* | PMatch(t) -> term_as_type t *)
+  | _ -> (ID("PATTERN"), conditions)
     (* show_format fname ^ "(" ^ show_pattern_list args ^ ")" *)
 (* letStructInstance = Exp *)
     (* | PFunc(name, args) -> name ^ "(" ^ pattern_list args ^ ")" *)
@@ -32,7 +40,7 @@ and translateArgs args =
   (* Exp(List.map (fun a -> translateTerm a) args) *)
 
 and toStructPattern fname args =
-  StructPattern(ID(fname), List.map (fun a -> translatePattern (a)) args)
+  StructPattern(ID(fname), List.map (fun a -> fst(translatePattern (a) [])) args)
 
 and toFunction name exp =
   Exp(Id(ID(name)),exp)
@@ -45,25 +53,16 @@ and fresh name data_type  =
 
 and process = function
     LSend(p, Form(fname, args), local_type) ->
-    let send = toFunction "send" (Exps([Id(ID("c")); (toFunction (EStruct(ID(fname ), StructValues((List.map (fun a -> StructValue(translateTerm a)) args)))))])) in
-    SDeclExp(DeclExp(translatePattern (PVar "c"), send))::process local_type
-    (* process (LLet (PVar("c"), send, local_type)) *)
-    (* ::local_type *)
-  (* | LSend(p, t, local_type) -> process local_type *)
+    let send = toFunction "send" (Exps([Id(ID("c")); ((EStruct(ID(fname ), StructValues((List.map (fun a -> StructValue(translateTerm a)) args)))))])) in
+    SDeclExp(DeclExp(fst(translatePattern (PVar "c") []), send))::process local_type
   | LNew (ident, data_type, local_type) -> (fresh ident data_type)::process local_type
-  (* | LLet (PMatch(ident), term, local_type) -> *)
-    (* indent ^ "if " ^ show_term ident ^ " != " ^ show_term term ^ " { panic!(\"" ^show_term ident ^ " does not match " ^ show_term term  ^"\") };\n" ^ process local_type *)
   | LLet (PForm(fname, args), term, local_type) -> SDeclExp(PatrExp(toStructPattern fname args, translateTerm term))::process local_type
   | LLet (PMatch(mat), term, local_type) ->
     [SIfStatement(If(OExp(translateTerm mat, Equals, translateTerm term), BStmts(process local_type)))]
-
-  | LLet (ident, term, local_type) -> SDeclExp(DeclExp(translatePattern ident, translateTerm term))::process local_type
-  (* | LRecv (principal, pattern, Form(fname, args), local_type) ->  SDeclExp(DeclExp(translatePattern pattern, translateTerm term))::process local_type *)
+  | LLet (ident, term, local_type) -> SDeclExp(DeclExp(fst(translatePattern ident []), translateTerm term))::process local_type
   | LRecv (principal, PVar(x), term, LLet (PForm(fname, args), Var(xx), local_type)) ->
     SDeclExp(DeclExp((ID("(c," ^x ^ ")")), toFunction "recv" (Id(ID("c")))))::SDeclExp(PatrExp(toStructPattern fname args, Id(ID(xx))))::process local_type
-  | LRecv (principal, PVar(x), term, local_type) ->  SDeclExp(DeclExp((ID(x)), toFunction "recv" (Id(ID("c")))))::process local_type
-(* | LRecv (principal, PMatch(t), x, local_type) ->  SIfStatement(If(translateTerm t, BStmts([SDeclExp(DeclExp((ID("XX")), toFunction "recv" (Ids([]))))])) )::process local_type *)
-(* | LRecv (principal, pattern, term, local_type) -> process local_type *)
+  | LRecv (principal, PVar(x), term, local_type) ->  SDeclExp(DeclExp((ID(x)), toFunction ("recv") (Id(ID("c")))))::process local_type
   | LEvent (ident, term, local_type) -> process local_type
   | LLocalEnd -> [SExp(toFunction "close" (Id(ID("c"))))]
   | _ -> [End]

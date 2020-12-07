@@ -24,8 +24,8 @@ trait Represent<T> {
     fn to_repr(_: T) -> Repr<T>;
 }
 
-fn send<E, P, A: marker::Send + 'static>(c: Chan<E, Send<Repr<A>, P>>, v: Repr<A>) -> Chan<E, P> { c.send(v) }
-fn recv<E, P, A: marker::Send + 'static>(c: Chan<E, Recv<Repr<A>, P>>) -> (Chan<E, P>, Repr<A>) { c.recv() }
+fn send<E, P, A: marker::Send + Serialize + DeserializeOwned + 'static>(c: Chan<E, Send<Repr<A>, P>>, v: Repr<A>) -> Chan<E, P> { c.send(Repr::to_repr(v)) }
+fn recv<E, P, A: marker::Send + Serialize + DeserializeOwned + 'static>(c: Chan<E, Recv<Repr<A>, P>>) -> (Chan<E, P>, Repr<A>) { let (c, x) = c.recv(); (c, Repr::from_repr(x)) }
 fn close<E>(c: Chan<E, Eps>) { c.close() }
 "
 
