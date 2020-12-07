@@ -45,7 +45,7 @@ and fresh name data_type  =
 
 and process = function
     LSend(p, Form(fname, args), local_type) ->
-    let send = toFunction "send" (Exps([Id(ID("c")); (toFunction "Repr::to_repr" (EStruct(ID(fname ), StructValues((List.map (fun a -> StructValue(translateTerm a)) args)))))])) in
+    let send = toFunction "send" (Exps([Id(ID("c")); (toFunction (EStruct(ID(fname ), StructValues((List.map (fun a -> StructValue(translateTerm a)) args)))))])) in
     SDeclExp(DeclExp(translatePattern (PVar "c"), send))::process local_type
     (* process (LLet (PVar("c"), send, local_type)) *)
     (* ::local_type *)
@@ -55,12 +55,12 @@ and process = function
     (* indent ^ "if " ^ show_term ident ^ " != " ^ show_term term ^ " { panic!(\"" ^show_term ident ^ " does not match " ^ show_term term  ^"\") };\n" ^ process local_type *)
   | LLet (PForm(fname, args), term, local_type) -> SDeclExp(PatrExp(toStructPattern fname args, translateTerm term))::process local_type
   | LLet (PMatch(mat), term, local_type) ->
-    (* let block = SDeclExp(DeclExp(translatePattern (PMatch(mat)), translateTerm term)) in *)
     [SIfStatement(If(OExp(translateTerm mat, Equals, translateTerm term), BStmts(process local_type)))]
+
   | LLet (ident, term, local_type) -> SDeclExp(DeclExp(translatePattern ident, translateTerm term))::process local_type
   (* | LRecv (principal, pattern, Form(fname, args), local_type) ->  SDeclExp(DeclExp(translatePattern pattern, translateTerm term))::process local_type *)
   | LRecv (principal, PVar(x), term, LLet (PForm(fname, args), Var(xx), local_type)) ->
-    SDeclExp(DeclExp((ID("(c," ^x ^ ")")), toFunction "recv" (Id(ID("c")))))::SDeclExp(PatrExp(toStructPattern fname args, Id(ID("Repr::from_repr(" ^ xx ^ ")"))))::process local_type
+    SDeclExp(DeclExp((ID("(c," ^x ^ ")")), toFunction "recv" (Id(ID("c")))))::SDeclExp(PatrExp(toStructPattern fname args, Id(ID(xx))))::process local_type
   | LRecv (principal, PVar(x), term, local_type) ->  SDeclExp(DeclExp((ID(x)), toFunction "recv" (Id(ID("c")))))::process local_type
 (* | LRecv (principal, PMatch(t), x, local_type) ->  SIfStatement(If(translateTerm t, BStmts([SDeclExp(DeclExp((ID("XX")), toFunction "recv" (Ids([]))))])) )::process local_type *)
 (* | LRecv (principal, pattern, term, local_type) -> process local_type *)
