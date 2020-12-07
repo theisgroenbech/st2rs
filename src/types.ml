@@ -7,6 +7,8 @@ type lemma = string
 (* 1. Types *)
 type data_type =
     DType of ident
+  | DAType of ident * ident
+  | AType of ident
 (* Terms *)
 type term =
     Var of ident
@@ -84,7 +86,7 @@ type problem = { name: ident;
                  principals: (principal * bool) list;
                  knowledge: (ident * principal) list;
                  types: data_type list;
-                 functions: (ident * (data_type list * data_type * bool)) list;
+                 functions: (ident * (data_type list * data_type * bool * data_type list)) list;
                  equations: (term * term) list;
                  formats: (ident * (data_type list)) list;
                  protocol: global_type;
@@ -100,6 +102,7 @@ type msr_rule = Rule of letb list * fact list * fact list * fact list
 let rec show_term = function
     Var(x) -> x
   | Func(name, args) -> name ^ "(" ^ show_term_list args ^ ")"
+  | Form(name, args) -> name ^ "(" ^ show_term_list args ^ ")"
   | Tuple(args) -> "<" ^ show_term_list args ^ ">"
   | Eq(t1, t2) -> show_term t1 ^ " = " ^ show_term t2
   | And(t1, t2) -> show_term t1 ^ " & " ^ show_term t2
@@ -127,6 +130,7 @@ and show_pattern_list = function
 and show_dtype t =
   match t with
   | DType dtype -> dtype
+  | DAType(at, dt) -> at ^ "<" ^ dt ^">"
 
 and show_let_bind = function
     New(name, data_type, letb) -> "  " ^ "new " ^ name ^ ";\n" ^ show_let_bind letb
@@ -204,8 +208,8 @@ let rec show_rules n = function
 
 let rec show_fdefs = function
     [] -> ""
-  | [f, (args_t, res_t, _)] -> f ^ "/" ^ string_of_int (List.length args_t)
-  | (f, (args_t, res_t, _))::fs -> f ^ "/" ^ string_of_int (List.length args_t) ^", "^show_fdefs fs
+  | [f, (args_t, res_t, _, _)] -> f ^ "/" ^ string_of_int (List.length args_t)
+  | (f, (args_t, res_t, _, _))::fs -> f ^ "/" ^ string_of_int (List.length args_t) ^", "^show_fdefs fs
 
 let rec show_eqdefs = function
     [] -> ""

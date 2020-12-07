@@ -3,6 +3,7 @@ open Types
 let rec show_term = function
     Var(x) -> x
   | Func(name, args) -> name ^ "(" ^ show_term_list args ^ ")"
+  | Form(name, args) -> name ^ "(" ^ show_term_list args ^ ")"
   | Tuple(args) -> "<" ^ show_term_list args ^ ">"
   | Eq(t1, t2) -> show_term t1 ^ " = " ^ show_term t2
   | And(t1, t2) -> show_term t1 ^ " & " ^ show_term t2
@@ -18,6 +19,7 @@ and show_term_list = function
 and show_pattern = function
     PVar(x) -> x
   | PFunc(name, args) -> name ^ "(" ^ show_pattern_list args ^ ")"
+  | PForm(name, args) -> name ^ "(" ^ show_pattern_list args ^ ")"
   | PTuple(args) -> "<" ^ show_pattern_list args ^ ">"
   | PMatch(t) -> "=" ^ show_term t
 
@@ -91,6 +93,7 @@ and to_local_type global_type participant =
   match global_type with
     Send(sender, reciever, x, t, g) when participant = sender -> LSend(sender, t, to_local_type g participant)
   | Send(sender, reciever, x, t, g) when participant = reciever -> LRecv(reciever, PVar(x), t, to_local_type g participant)
+  | Send(sender, reciever, x, t, g) -> to_local_type g participant
   | Compute(p, letb, g) when participant = p -> local_let_bind letb (to_local_type g participant)
   | Compute(p, letb, g) -> (to_local_type g participant)
   | DefGlobal(name, params, g, g') -> to_local_type (unwrapGlobal g' g) participant
@@ -102,7 +105,8 @@ and show_local_type local =
   | LNew (ident, data_type, local_type) -> "new " ^ ident ^ " : " ^ show_dtype data_type ^ ";\n" ^ show_local_type local_type
   | LLet (ident, term, local_type) -> "let " ^ show_pattern ident ^ " = " ^ show_term term ^ " in\n" ^ show_local_type local_type
   | LRecv (principal, pattern, term, local_type) -> "let "^ show_pattern pattern  ^" = in() \n"^ show_local_type local_type
-  | _ -> "0."
+  | LEvent (ident, termlist, local_type) -> "event " ^ ident ^ "(" ^ show_term_list termlist ^ ");\n" ^ show_local_type local_type
+  | LLocalEnd -> "0."
 
 
 and show_global_type_nr = function
@@ -133,5 +137,6 @@ and show_params = function
   | ((x, p)::xs) -> x ^ " @ " ^ p ^ ", " ^ show_params xs
 
 let projection (pr:problem): unit =
-  List.iter (fun (p, b) -> 
+  Printf.printf  "%s" (show_global_type_nr pr.protocol);
+  List.iter (fun (p, b) ->
     Printf.printf "let %s = %s\n" p (show_local_type (to_local_type pr.protocol p))) pr.principals

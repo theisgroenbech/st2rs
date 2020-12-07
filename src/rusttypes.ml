@@ -1,5 +1,6 @@
 open Types
 open Localtypes
+open Rusttranslator
 
 let abstract_type = "T"
 let concrete_type = "/* unimplemented */"
@@ -8,7 +9,8 @@ let pair = "pair"
 let pair_function = functions_variable ^ "." ^ pair
 let indent = "    "
 let interface_impl_name = "Functions"
-let enum_func =  "::I"
+let enum = "I"
+let enum_func =  "::"^enum
 
 let rec show_term_pair = function
     [] -> ""
@@ -72,8 +74,8 @@ and pattern_list = function
     | (x::xs) -> show_pattern x ^ ", " ^ show_pattern_list xs
 
 and channels = function
-    LSend(p, t, local_type) -> "Send<" ^ term_as_type t ^ ", " ^ channels local_type ^ ">"
-  | LRecv (principal, pattern, term, local_type) -> "Recv<" ^ term_as_type term ^", "^ channels local_type ^ ">"
+    LSend(p, t, local_type) -> "Send<Repr<" ^ term_as_type t ^ ">, " ^ channels local_type ^ ">"
+  | LRecv (principal, pattern, term, local_type) -> "Recv<Repr<" ^ term_as_type term ^">, "^ channels local_type ^ ">"
   | LNew (ident, data_type, local_type) -> channels local_type
   | LLet (ident, term, local_type) -> channels local_type
   | LEvent (ident, term, local_type) -> channels local_type
@@ -108,12 +110,13 @@ and process = function
   | LEvent (ident, term, local_type) -> indent ^ print ident term^ process local_type
   | _ -> "0."
 
-and rust_process principal proc =
-  "fn " ^ String.lowercase principal ^ "(c: Chan<(), " ^ principal ^ ">, "^functions_variable ^ ": &impl Interface" ^") {\n" ^ process proc ^"\n}"
+(* and rust_process principal proc = *)
+  (* "fn " ^ String.lowercase principal ^ "(c: Chan<(), " ^ principal ^ ">, "^functions_variable ^ ": &impl Interface" ^") {\n" ^ process proc ^"\n}" *)
 
 and print_type t =
   match t with
   | DType dtype -> dtype
+  | DAType (dtype,_) -> dtype
 
 and rust_types type_list =
   let types = List.map (fun t -> "type "^ print_type t ^ " = " ^ concrete_type ^ ";") type_list in
@@ -121,28 +124,30 @@ and rust_types type_list =
 
 and rust_interface (f : (ident * (data_type list * data_type * bool)) list) t =
   let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, ([], typ, false))) t in
-  "trait Interface<"^abstract_type^"> {\n" ^ indent ^ String.concat (";\n" ^indent) (functions (f @ freshTypeFunctions)) ^ ";\n}"
+  "trait Interface {\n" ^ indent ^ String.concat (";\n" ^indent) (functions (f @ freshTypeFunctions)) ^ ";\n}"
 
 and rust_impl_interface (f : (ident * (data_type list * data_type * bool)) list) t =
   let freshTypeFunctions = List.map (fun (typ) -> (fresh typ, ([], typ, false))) t in
-  "impl Interface<"^abstract_type^"> for "^ interface_impl_name ^" {\n" ^ indent ^ String.concat (" { unimplemented!() }\n" ^indent) (functions (f @ freshTypeFunctions)) ^ "{ unimplemented!() }\n}"
+  "impl Interface for "^ interface_impl_name ^" {\n" ^ indent ^ String.concat (" { unimplemented!() }\n" ^indent) (functions (f @ freshTypeFunctions)) ^ "{ unimplemented!() }\n}"
 
 and print_format f =
   match f with
-  | (name, data_types) -> indent ^ name ^ "(" ^ String.concat ", " (List.map (fun data -> print_type data) data_types) ^ ")"
+  | (name, data_types) -> "enum " ^  name ^ " { "^ enum ^"(" ^ String.concat ", " (List.map (fun data -> print_type data) data_types) ^ ") }"
 
-and rust_formats form =
-  "enum Formats {\n" ^ String.concat "\n," (List.map (fun format -> print_format format) form) ^ "\n}"
+(* and rust_formats form = *)
+  (* String.concat "\n" (List.map (fun format -> print_format format) form) *)
+  (* "enum Formats {\n" ^ String.concat "\n," (List.map (fun format -> print_format format) form) ^ "\n}" *)
 
-and rust_functions f t =
-  rust_interface f t ^ "\n\n" ^ "struct Functions {}\n\n" ^ rust_impl_interface f t
+(* and rust_functions f t =
+  rust_interface f t ^ "\n\n" ^ "struct Functions {}\n\n" ^ rust_impl_interface f t *)
 
 and rust_channel p t =
-  "type " ^ p ^ "<" ^ abstract_type ^ ">" ^ " = " ^ channels t ^ ";"
+  "type " ^ p ^ " = " ^ channels t ^ ";"
 
 
 let rust_output (pr:problem) : unit =
-  List.map (fun (p, b) -> 
+  Printf.printf "%s\n" (rust_handwritten);
+  List.map (fun (p, b) ->
     Printf.printf "%s\n" (rust_channel p (to_local_type pr.protocol p))) pr.principals;
   Printf.printf "\n%s\n" (rust_types pr.types);
   Printf.printf "\n%s\n" (rust_formats pr.formats);

@@ -1,4 +1,4 @@
-open Types
+(* open Types
 
 type resultOrError =
     Result of tenv
@@ -45,14 +45,14 @@ let rec check_pattern env funs = function
                else [x ^ " already defined in pattern"]
   | PMatch(t) ->
       check_term env funs t
-  | PForm(f, args) -> [] (* TODO Format typechecking *) 
+  | PForm(f, args) -> [] (* TODO Format typechecking *)
   | PFunc(f, args) ->
     check_func f args true funs @
       List.concat (List.map (check_pattern env funs) args)
   | PTuple(l) ->
       List.concat(List.map (check_pattern env funs) l)
 
-let rec typecheck (pr:problem): unit = 
+let rec typecheck (pr:problem): unit =
   let p' = ("Dishonest", false)::pr.principals in
   let e = List.map (fun (p, x) -> p, initial_knowledge p [] pr.knowledge) pr.principals in
   let messages = check pr.protocol e [] pr.functions in
@@ -143,4 +143,4 @@ end
   end
 
 | GlobalEnd -> []
-(*| _ -> [] *)
+(*| _ -> [] *) *)

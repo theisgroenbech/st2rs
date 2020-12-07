@@ -44,7 +44,11 @@ and exp =
   | Ref of ref * exp
   | EStruct of rId * structValues
   | Exp of exp * exp
+  | OExp of exp * op * exp
   | Unimplemented
+
+and ifStatement =
+  | If of exp * block
 
 and exps =
     Exps of exp list
@@ -79,6 +83,7 @@ and stmts =
     SDeclExp of declExp
   | SBlock of block
   | SExp of exp
+  | SIfStatement of ifStatement
   | SFunction of rFunction
   | SStruct of rStruct
   | End

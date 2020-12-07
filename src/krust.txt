@@ -1,0 +1,43 @@
+IDENTIFIER
+Id                ::= x
+
+VARIABLE TYPES
+Type              ::= i8 | u8 | i16 | u16 | i32 | u32 | i64 | u64 | char | &str | bool | Id | [Type;Exp] | fn (Types) -> Type
+Types             ::= Type*
+
+AUXILARY TYPES
+TypedId           ::= Id : Type*
+TypedIds          ::= TypedId*
+
+VARIABLE DECLERATION
+DeclExp           ::= let Id [: Type] ? [=Exp]
+
+EXPRESSIONS
+Op                ::= “==” | “!=”
+Exp               ::= Int | Bool | Float | String | Char | Id | *Id | [Exps] | Id{StructValues} | Exp Op Exp
+Exps              ::= Exp*
+
+ASSIGNEMENT STATEMENT
+AssignOp          ::= “=”
+AssignmentStmt    ::= Id AssignOp Exp; | Id[Exp] AssignOp Exp; | *Id AssignOp Exp;
+
+IF STATEMENT
+If                ::= if Exp else ?Block
+
+BLOCK
+Block             ::= { } | { Stmts } | { Stmts Exp }
+
+REFERENCES
+Ref               ::= & 
+
+STRUCT
+Struct            ::= struct Id{TypedIds}
+StructValue       ::= Id : Exp
+StructValues      ::= StructValue*
+StructInstance    ::= Id { StructValues }
+
+FUNCTION
+Function          ::= fn Id (TypedIds) [->Type] ? Block
+
+STATEMENTS
+Stmts             ::= DeclExp | AssignStmt | Block | Exp ; | return ; | return Exp ; | Function | Struct

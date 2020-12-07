@@ -26,7 +26,7 @@ let rec print_errors = function
     print_errors err
   | [] -> ()
 
-let main = 
+let main =
   let filename = Sys.argv.(1) in
   let inx = open_in filename in
   let lexbuf = Lexing.from_channel inx in
@@ -35,7 +35,7 @@ let main =
   let f = match action with
   | "tamarin" -> translate
   | "rust" -> rust_output
-  | "typecheck" -> typecheck
+  (* | "typecheck" -> typecheck *)
   | "projection" -> projection
   | "mscgen" -> Types.mscgen
   | _ -> fun x -> ()

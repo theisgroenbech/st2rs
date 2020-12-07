@@ -33,7 +33,8 @@ program:
 
 fundef:
 // | f = ID; DIV; arity = NUM; LEFT_BRACE; DATA; RIGHT_BRACE { (f, (arity, true)) }
-| f = ID; LEFT_PAR; params = data_type_list; RIGHT_PAR; ARROW; return_type = data_type { (f, (params, return_type, false)) }
+| f = ID; LEFT_PAR; params = data_type_list; RIGHT_PAR; ARROW; return_type = data_type { (f, (params, return_type, false, [])) }
+| f = ID; LEFT_ANGLE; dtype = data_type; RIGHT_ANGLE; LEFT_PAR; params = data_type_list; RIGHT_PAR; ARROW; return_type = data_type { (f, (params, return_type, false, [dtype])) }
 
 eqdef:
 | lhs = term; EQ; rhs = term { (lhs, rhs) }
@@ -77,8 +78,8 @@ term_list:
   { l };
 
 data_type:
-  | name = ID
-    { DType(name) }
+| name = ID { DType(name) }
+| wrapper = ID; LEFT_ANGLE; name = ID; RIGHT_ANGLE { DAType(wrapper, name) }
 
 data_type_list:
   | l = separated_list(COMMA, data_type)
