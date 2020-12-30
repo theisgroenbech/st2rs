@@ -24,8 +24,8 @@ trait Represent<T> {
     fn to_repr(_: T) -> Repr<T>;
 }
 
-fn send<E, P, A: marker::Send + Serialize + DeserializeOwned + 'static>(c: Chan<E, Send<Repr<A>, P>>, v: Repr<A>) -> Chan<E, P> { c.send(Repr::to_repr(v)) }
-fn recv<E, P, A: marker::Send + Serialize + DeserializeOwned + 'static>(c: Chan<E, Recv<Repr<A>, P>>) -> (Chan<E, P>, Repr<A>) { let (c, x) = c.recv(); (c, Repr::from_repr(x)) }
+fn send<E, P, A: marker::Send + Serialize + DeserializeOwned + 'static>(c: Chan<E, Send<Repr<A>, P>>, v: A) -> Chan<E, P> { c.send(Repr::to_repr(v)) }
+fn recv<E, P, A: marker::Send + Serialize + DeserializeOwned + 'static>(c: Chan<E, Recv<Repr<A>, P>>) -> (Chan<E, P>, A) { let (c, x) = c.recv(); (c, Repr::from_repr(x)) }
 fn close<E>(c: Chan<E, Eps>) { c.close() }
 "
 
@@ -53,7 +53,7 @@ and printStruct = function
 and printStructs structs = String.concat "\n\n" (List.map (fun s-> printStruct s) structs)
 
 and printrId = function
-      ID(s) -> s
+    ID(s) -> s
 
 and printExp = function
       Id(id) -> printrId id
@@ -64,6 +64,7 @@ and printExp = function
     | Exp(exp1, exp2) -> printExp exp1 ^ "(" ^ printExp exp2 ^ ")"
     | Exps(exps) -> String.concat "," (List.map (fun i-> printExp i) exps)
     | OExp(exp, Equals, exp2) -> "&" ^ printExp exp ^ " == " ^  "&" ^ printExp exp2
+    | OExp(exp, And, exp2) -> printExp exp ^ " && " ^ printExp exp2
     | Unimplemented -> "unimplemented!()"
 
 

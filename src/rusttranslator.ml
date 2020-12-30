@@ -23,12 +23,26 @@ let rec translateTerm = function
   | Not(t) -> "~" ^ show_term t *)
   | _ -> Id(ID("TERM"))
 
+and combineConditions cons =
+  let rec inner cons acc =
+    match cons with
+      [] -> []
+    | head :: tail ->
+      let t =  translatePattern head acc in
+      snd(t)@inner tail acc
+  in
+  inner cons []
+
+
 and translatePattern pat (conditions : (term * term) list) =
   match pat with
-    PVar(x) -> (ID(x), conditions)
-  | PForm(fname, args) -> (ID(fname), conditions)
-  (* | PMatch(t) -> term_as_type t *)
-  | _ -> (ID("PATTERN"), conditions)
+    PVar(x) -> ((ID(x)), conditions)
+  | PForm(fname, args) ->
+    ((ID(fname)), (combineConditions args))
+  | PMatch(t) ->
+      let var = next_var() in
+      (ID(var), (t, Var(var))::conditions)
+  | _ -> ((ID("PATTERN")), conditions)
     (* show_format fname ^ "(" ^ show_pattern_list args ^ ")" *)
 (* letStructInstance = Exp *)
     (* | PFunc(name, args) -> name ^ "(" ^ pattern_list args ^ ")" *)
@@ -51,15 +65,32 @@ and freshType t =
 and fresh name data_type  =
   SDeclExp(DeclExp((ID(name)), toFunction (freshType data_type) (Ids([]))))
 
+and equals_condition_patterns = function
+    (t1, t2)::[] -> OExp(translateTerm t1, Equals, translateTerm t2)
+  | (t1, t2)::tail -> OExp(OExp(translateTerm t1, Equals, translateTerm t2),And, equals_condition_patterns tail)
+
 and process = function
     LSend(p, Form(fname, args), local_type) ->
     let send = toFunction "send" (Exps([Id(ID("c")); ((EStruct(ID(fname ), StructValues((List.map (fun a -> StructValue(translateTerm a)) args)))))])) in
     SDeclExp(DeclExp(fst(translatePattern (PVar "c") []), send))::process local_type
   | LNew (ident, data_type, local_type) -> (fresh ident data_type)::process local_type
-  | LLet (PForm(fname, args), term, local_type) -> SDeclExp(PatrExp(toStructPattern fname args, translateTerm term))::process local_type
+  | LLet (PForm(fname, args), term, local_type) ->
+    let patterns = List.map (fun a -> translatePattern (a) []) args in
+    let conditions = List.flatten(List.map (fun x -> snd(x)) patterns) in
+    let pats = List.map (fun x-> fst(x)) patterns in
+    let strPtn = StructPattern(ID(fname), pats) in
+    if(conditions = []) then SDeclExp(PatrExp(strPtn, translateTerm term))::process local_type
+    else SDeclExp(PatrExp(strPtn, translateTerm term))::[SIfStatement(If((equals_condition_patterns conditions), BStmts(process local_type)))]
   | LLet (PMatch(mat), term, local_type) ->
     [SIfStatement(If(OExp(translateTerm mat, Equals, translateTerm term), BStmts(process local_type)))]
-  | LLet (ident, term, local_type) -> SDeclExp(DeclExp(fst(translatePattern ident []), translateTerm term))::process local_type
+  | LLet (ident, term, local_type) ->
+    let patterns = translatePattern ident [] in
+    let conditions = snd(patterns) in
+    if(conditions = []) then begin
+      SDeclExp(DeclExp(fst(patterns), translateTerm term))::process local_type end
+    else begin
+      [SIfStatement(If((equals_condition_patterns conditions), BStmts(process local_type)))]
+    end
   | LRecv (principal, PVar(x), term, LLet (PForm(fname, args), Var(xx), local_type)) ->
     SDeclExp(DeclExp((ID("(c," ^x ^ ")")), toFunction "recv" (Id(ID("c")))))::SDeclExp(PatrExp(toStructPattern fname args, Id(ID(xx))))::process local_type
   | LRecv (principal, PVar(x), term, local_type) ->  SDeclExp(DeclExp((ID(x)), toFunction ("recv") (Id(ID("c")))))::process local_type
