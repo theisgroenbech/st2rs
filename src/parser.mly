@@ -32,7 +32,6 @@ program:
 { Some { name = n; principals = p; knowledge = k; types = t; functions = f; equations = e; formats = formats; protocol = g; lemm = l} };
 
 fundef:
-// | f = ID; DIV; arity = NUM; LEFT_BRACE; DATA; RIGHT_BRACE { (f, (arity, true)) }
 | f = ID; LEFT_PAR; params = data_type_list; RIGHT_PAR; ARROW; return_type = data_type { (f, (params, return_type, false, [])) }
 | f = ID; LEFT_ANGLE; dtype = data_type; RIGHT_ANGLE; LEFT_PAR; params = data_type_list; RIGHT_PAR; ARROW; return_type = data_type { (f, (params, return_type, false, [dtype])) }
 

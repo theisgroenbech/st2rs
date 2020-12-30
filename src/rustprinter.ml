@@ -37,17 +37,9 @@ let rec printStructPattern = function
 and printStructValues = function
     StructValue(x) -> printExp x
 
-(* and impl_repr s =
-  "impl Represent<" ^ s ^ "> for Repr<" ^ s ^ "> {
-    fn from_repr(b: Repr<" ^ s ^ ">) -> " ^ s ^ " { bincode::deserialize(&b.0[..]).unwrap() }
-    fn to_repr(b: " ^ s ^ ") -> Repr<" ^ s ^ "> { Repr(bincode::serialize(&b).unwrap(), PhantomData) }
-}" *)
 
 and printStruct = function
-    Struct(ID(name), RTypes(types)) ->
-      "#[derive(Serialize, Deserialize)]\n" ^
-      "struct " ^ name ^ "(" ^ printTypes types ^ ");"
-      (* impl_repr name *)
+    Struct(ID(name), RTypes(types)) -> "#[derive(Serialize, Deserialize)]\n" ^ "struct " ^ name ^ "(" ^ printTypes types ^ ");"
 
 
 and printStructs structs = String.concat "\n\n" (List.map (fun s-> printStruct s) structs)
@@ -75,7 +67,6 @@ and printSDeclExp = function
 and printBlock = function
       Empty -> "{}"
     | BStmts(lst) -> ("{\n") ^ String.concat (";\n") (List.map (fun s -> printStatements s) lst) ^ "}"
-(* | BStmtsExp(stmt, exp) ->  *)
 
 and printType = function
     U8 -> "u8"
@@ -106,5 +97,4 @@ and printStatements = function
     | SExp(exp) -> printExp exp
     | SFunction(rFunction) -> printFunction rFunction
     | SIfStatement(If(st, block)) -> printIf st block
-    (* | SStruct(rStruct) -> "STRUCT" *)
     | End -> ""

@@ -33,9 +33,6 @@ and show_let_bind = function
   | Let(p, t, letb) -> "let " ^ show_pattern p ^ " = " ^ show_term t ^ " in\n" ^ show_let_bind letb
   | Event(ident, termList, let_bind) -> "EVENT"
   | LetEnd -> ""
-(*
-  | LNew of ident * local_type
-  | LLet of ident * term * local_type *)
 
 and local_let_bind types g =
   match types with
@@ -54,32 +51,8 @@ and show_global_type2 = function
     p ^ " {\n" ^ show_let_bind letb ^ "}\n" ^ show_global_type2 g
   | DefGlobal(name, params, g, g') -> show_global_type2 g
   | CallGlobal(name, params) -> ""
-    (* name ^ "(" ^ show_term_list params ^ ")" *)
   | GlobalEnd ->
     ""
-    (* "end\n" *)
-
-(* type global_type =
-      Send of principal * principal * ident * term * global_type
-    | Branch of principal * principal * term * (pattern * global_type) list
-    | Compute of principal * let_bind * global_type
-    | DefGlobal of ident * (ident * principal) list * global_type * global_type
-    | CallGlobal of ident * term list
-    | GlobalEnd
-*)
-
-(* type local_type =
-    LSend of principal * term * local_type
-  | LRecv of principal * pattern * local_type
-  | LSelect of principal * (term * local_type) list
-  | LBranch of principal * (pattern * local_type) list
-  | LNew of ident * local_type
-  | LLet of ident * term * local_type
-  | LDefLocal of ident * ident list * local_type * local_type
-  | LCallLocal of ident * term list * local_type
-  | LLocalEnd
-*)
-
 
 (* This takes the part of global where the participants do stuff before running *)
 and unwrapGlobal global local =

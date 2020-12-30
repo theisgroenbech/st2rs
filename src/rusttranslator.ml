@@ -15,13 +15,6 @@ let rec translateTerm = function
     Var(x) -> Id(ID(x))
   | Func(name, args) -> Exp(Id(ID(name)), translateArgs args)
   | Form(name, args) -> EStruct((ID(name)), StructValues(List.map (fun x-> StructValue x) ((List.map (fun a -> translateTerm a) args))))
-  | Tuple(args) -> Id(ID("TUPLE"))
-    (* show_term_pair args *)
-(*  | Eq(t1, t2) -> show_term t1 ^ " = " ^ show_term t2
-  | And(t1, t2) -> show_term t1 ^ " & " ^ show_term t2
-  | Or(t1, t2) -> show_term t1 ^ " | " ^ show_term t2
-  | Not(t) -> "~" ^ show_term t *)
-  | _ -> Id(ID("TERM"))
 
 and combineConditions cons =
   let rec inner cons acc =
@@ -42,16 +35,9 @@ and translatePattern pat (conditions : (term * term) list) =
   | PMatch(t) ->
       let var = next_var() in
       (ID(var), (t, Var(var))::conditions)
-  | _ -> ((ID("PATTERN")), conditions)
-    (* show_format fname ^ "(" ^ show_pattern_list args ^ ")" *)
-(* letStructInstance = Exp *)
-    (* | PFunc(name, args) -> name ^ "(" ^ pattern_list args ^ ")" *)
-    (* | PTuple(args) -> "pair(" ^ pattern_list args ^ ")" *)
-    (* | PMatch(t) -> "=" ^ term_as_type t *)
 
 and translateArgs args =
   Exps( (List.map (fun a -> translateTerm a) args))
-  (* Exp(List.map (fun a -> translateTerm a) args) *)
 
 and toStructPattern fname args =
   StructPattern(ID(fname), List.map (fun a -> fst(translatePattern (a) [])) args)
@@ -97,7 +83,7 @@ and process = function
   | LEvent (ident, term, local_type) -> process local_type
   | LLocalEnd -> [SExp(toFunction "close" (Id(ID("c"))))]
   | _ -> [End]
-(* *)
+
 and typedIds t =
   let rec inner dt i =
     match dt with

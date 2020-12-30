@@ -139,12 +139,6 @@ and print_format f =
   match f with
   | (name, data_types) -> "enum " ^  name ^ " { "^ enum ^"(" ^ String.concat ", " (List.map (fun data -> print_type data) data_types) ^ ") }"
 
-(* and rust_formats form = *)
-  (* String.concat "\n" (List.map (fun format -> print_format format) form) *)
-  (* "enum Formats {\n" ^ String.concat "\n," (List.map (fun format -> print_format format) form) ^ "\n}" *)
-
-(* and rust_functions f t =
-  rust_interface f t ^ "\n\n" ^ "struct Functions {}\n\n" ^ rust_impl_interface f t *)
 
 and rust_channel p t =
   "type " ^ p ^ " = " ^ channels t ^ ";"

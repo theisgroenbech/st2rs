@@ -138,14 +138,6 @@ and show_let_bind = function
   | Event(f, args, letb) -> "event " ^ f ^ "("^ show_term_list args ^ ")\n" ^ show_let_bind letb
   | LetEnd -> ""
 
-(*
-and show_channel_option = function
-    { authentic = false; secret = false } -> " -> "
-  | { authentic = true; secret = false } -> " *-> "
-  | { authentic = false; secret = true } -> " ->* "
-  | { authentic = true; secret = true } -> " *->* "
-*)
-
 (* Show global types *)
 and show_global_type = function
   Send(p, q, x, t, g) -> p ^ "->" ^ q ^ ": " ^ x ^ " = " ^ show_term t ^ "\n" ^ show_global_type g
