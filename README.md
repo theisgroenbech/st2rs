@@ -1,13 +1,12 @@
-# Updates from original
+# From session types to Rust
+In this project, we create a translation between security session types and Rust-code. We take advantage of session types for communication and describe the behaviour of each participant. In this project, we extend security session types further and introduce a translation to the Rust programming language. The protocol itself will be translated into runnable rust code while symbolic functions will be compiled to unimplemented functions, that the developer will then have to take care of implementing.
 
-- Removed Bullet Notation
-
-# You need
-
-- https://opam.ocaml.org/
-- opam install core utop (don't need this now)
-
-https://dev.realworldocaml.org/install.html
-https://v1.realworldocaml.org/v1/en/html/index.html
-http://caml.inria.fr/pub/docs/manual-ocaml/
-https://ocaml.janestreet.com/ocaml-core/latest/doc/
+## Building
+```bash
+cd src
+make
+```
+## Running
+```bash
+./main.native [FILE] rust
+```
