@@ -1,0 +1,25 @@
+Problem: DiffieHellman;
+Principals: Alice, Bob;
+Types: key;
+Functions: exp(key, key) -> key, g() -> key; 
+Equations: exp(exp(g,y),x) = exp(exp(g,x),y);
+Formats: M1(key), M2(key);
+Protocol:
+Alice {
+    new x: key;
+    let gx = exp(g(), x);
+}
+Alice -> Bob: a = M1<gx>
+Bob {
+    let M1<gx> = a;
+    new y: key;
+    let gy = exp(g(), x);
+    let gxy = exp(gx, y);
+}
+Bob -> Alice: b = M2<gy>
+Alice {
+    let M2<gy> = b;
+    let gxy = exp(gy, x);
+}
+end
+

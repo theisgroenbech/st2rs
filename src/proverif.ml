@@ -27,7 +27,7 @@ and show_equation_params equation names_and_types =
 
 and show_equation equation names_and_types =
   match equation with
-  | (t1, t2) -> "reduc forall " ^ (show_equation_params equation names_and_types) ^ ";\n\t" ^ (show_term t1) ^ " = " ^ (show_term t2)
+  | (t1, t2) -> "equation forall " ^ (show_equation_params equation names_and_types) ^ ";\n\t" ^ (show_term t1) ^ " = " ^ (show_term t2)
 
 let proverif (pr:problem): unit =
   Printf.printf  "(* Protocol: %s *)\n\n" pr.name;
@@ -39,4 +39,5 @@ let proverif (pr:problem): unit =
     Printf.printf "%s.\n" (show_function t)) pr.functions;
     Printf.printf "%s\n" "";
   List.iter (fun e -> 
-    Printf.printf "%s.\n" (show_equation e function_types)) pr.equations
+    Printf.printf "%s.\n" (show_equation e function_types)) pr.equations;
+  Printf.printf "%s" "process 0" (* Just for testing until the rest is done *)
