@@ -3,8 +3,8 @@ open Lexing
 open Printf
 open Translation
 open Rusttypes
-open Typecheck
 open Localtypes
+open Proverif
 
 let print_position outx lexbuf =
   let pos = lexbuf.lex_curr_p in
@@ -38,6 +38,7 @@ let main =
   (* | "typecheck" -> typecheck *)
   | "projection" -> projection
   | "mscgen" -> Types.mscgen
+  | "proverif" -> proverif
   | _ -> fun x -> ()
   in
   match parse_with_error lexbuf with
