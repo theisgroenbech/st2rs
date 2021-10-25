@@ -13,7 +13,7 @@ Alice -> Bob: a = M1<gx>
 Bob {
     let M1<gx> = a;
     new y: key;
-    let gy = exp(g(), x);
+    let gy = exp(g(), y);
     let gxy = exp(gx, y);
 }
 Bob -> Alice: b = M2<gy>
