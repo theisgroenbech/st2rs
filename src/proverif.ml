@@ -40,7 +40,20 @@ and show_local_type = function
 and show_format = function
   (name, types) -> "fun " ^ name ^ "(" ^ (String.concat ", " (List.map (fun t -> show_dtype t) types)) ^ "): bitstring [data]."
 
+and show_env = function
+  env ->
+    let vars = List.flatten (List.map (fun (_, e) -> e) env) in
+    let uniq_vars = List.sort_uniq (fun (a,_) (c,_) -> compare a c) vars in
+    String.concat "\n" (List.map (fun (name, dtype) -> "\tnew " ^ name ^ ": " ^ show_dtype dtype ^ ";") uniq_vars)
+
+and show_party_params = function
+  params -> String.concat "" (List.map (fun (name, dtype) -> ", " ^ name ^ ": " ^ show_dtype dtype) params)
+
+and instantiate_party_process_vars party = function
+  env -> String.concat "" (List.map (fun (i, _) -> ", " ^ i) (List.assoc party env))
+
 let proverif (pr:problem): unit =
+  let env = List.map (fun (p, x) -> p, initial_knowledge p [] pr.knowledge) pr.principals in
   Printf.printf  "(* Protocol: %s *)\n\n" pr.name;
   let function_types = List.map (fun f -> build_function f) pr.functions in
   List.iter (fun t -> 
@@ -55,5 +68,5 @@ let proverif (pr:problem): unit =
   List.iter (fun e -> 
     Printf.printf "%s.\n" (show_equation e function_types)) pr.equations;
   Printf.printf "%s\n" "";
-  List.iter (fun (p, b) -> Printf.printf "let %s(c: channel) = \n%s\n\n" p (show_local_type (to_local_type pr.protocol p))) pr.principals;
-  Printf.printf "process (\n\tnew c: channel;\n\t%s\n)" (String.concat " | " (List.map (fun (p, _) -> p ^ "(c)") pr.principals))
+  List.iter (fun (p, b) -> Printf.printf "let %s(c: channel%s) = \n%s\n\n" p (show_party_params (List.assoc p env)) (show_local_type (to_local_type pr.protocol p))) pr.principals;
+  Printf.printf "process (\n\tnew c: channel;\n%s\n\t%s\n)" (show_env env) (String.concat " | " (List.map (fun (p, _) -> p ^ "(c" ^ (instantiate_party_process_vars p env) ^ ")") pr.principals))

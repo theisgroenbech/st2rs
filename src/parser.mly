@@ -39,7 +39,7 @@ eqdef:
 | lhs = term; EQ; rhs = term { (lhs, rhs) }
 
 indef:
-| t = ID; AT; prin = ID { (t, prin) }
+| t = ID; COLON; dt = data_type; AT; prin = ID { (t, dt, prin) }
 
 prindef:
 | name = ID; LEFT_BRACK; DISHONEST; RIGHT_BRACK

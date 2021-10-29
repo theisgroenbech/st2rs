@@ -84,7 +84,7 @@ type prindis =
 
 type problem = { name: ident;
                  principals: (principal * bool) list;
-                 knowledge: (ident * principal) list;
+                 knowledge: (ident * data_type * principal) list;
                  types: data_type list;
                  functions: (ident * (data_type list * data_type * bool * data_type list)) list;
                  equations: (term * term) list;
@@ -221,8 +221,8 @@ let rec update x y = function
 
 let rec initial_knowledge p e = function
   | [] -> e
-  | (t', p') :: t ->
-    if p' = p then initial_knowledge p (t'::e) t
+  | (t', dt', p') :: t ->
+    if p' = p then initial_knowledge p ((t', dt')::e) t
     else initial_knowledge p e t
 
 let rec print_sep = function

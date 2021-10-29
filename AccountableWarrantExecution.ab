@@ -1,5 +1,6 @@
 Problem: AccountableWarrantExecution;
-Principals: Souce, Investigator, Court, Decryptor, Log;
+Principals: Source, Investigator, Decryptor;
+Knowledge: msk:mastersecretkey@Decryptor, uid:id@Investigator, uid:id@Source, mpk:masterpublickey@Source;
 Types: mastersecretkey, masterpublickey, secretkey, id;
 Functions: enc(masterpublickey, id, bitstring) -> bitstring,
            dec(bitstring, secretkey) -> bitstring,
@@ -8,22 +9,25 @@ Functions: enc(masterpublickey, id, bitstring) -> bitstring,
            blindextract(mastersecretkey, bitstring) -> secretkey;
 Equations: dec(enc(mpk, uid, msg), extract(msk, uid)) = msg,
            blindextract(msk, blind(uid)) = extract(msk, uid);
-Formats: M1(key), M2(key);
+Formats: M1(bitstring), M2(bitstring), M3(secretkey);
 Protocol:
-Alice {
-    new x: key;
-    let gx = exp(g(), x);
+Source {
+    new msg: bitstring;
+    let ct = enc(mpk, uid, msg);
 }
-Alice -> Bob: a = M1<gx>
-Bob {
-    let M1<gx> = a;
-    new y: key;
-    let gy = exp(g(), x);
-    let gxy = exp(gx, y);
+Source -> Investigator: x = M1<ct>
+Investigator {
+    let M1<ct> = x;
+    let buid = blind(uid);
 }
-Bob -> Alice: b = M2<gy>
-Alice {
-    let M2<gy> = b;
-    let gxy = exp(gy, x);
+Investigator -> Decryptor: y = M2<buid>
+Decryptor {
+    let M2<buid> = y;
+    let sk = blindextract(msk, buid);
+}
+Decryptor -> Investigator: z = M3<sk>
+Investigator {
+    let M3<sk> = z;
+    let msg = dec(ct, sk);
 }
 end

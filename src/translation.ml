@@ -1,7 +1,9 @@
+
 open Types
 open Rusttypes
 open Localtypes
 open Printf
+(*
 (* global_type, ID, N, (prin -> Rule), (prin -> [VAR]), (ID -> [VAR, prin]) = return Rule*)
 let rec tr g f n r e df =
   match g with
@@ -92,3 +94,6 @@ let translate (pr:problem): unit =
   let r = init_rules e pr.principals in
   let rules = tr pr.protocol pr.name 0 r e [] in
   printf "theory %s\nbegin\nfunctions: %s\nequations: %s\n\n%s\nend\n" pr.name (Types.show_fdefs pr.functions) (Types.show_eqdefs pr.equations) (Types.show_rules 1 rules)
+*)
+
+let translate (pr:problem): unit = ()
