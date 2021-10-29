@@ -1,0 +1,59 @@
+Problem: EDHOC;
+Principals: Initiator, Responder;
+Types: key, nonce, encrypted<F>, appdata, session, string;
+Functions: exp(key, key) -> key,
+           g() -> key, enc<F>(F, key) -> encrypted<F>,
+           dec<F>(encrypted<F>, key) -> F,
+           hash<F>(F) -> string,
+           hkdf(key, string, key) -> key;
+           Equations: exp(exp(g,y),x) = exp(exp(g,x),y),
+           dec(enc(x,y),y) = x;
+Formats: M1(session, nonce, key, appdata),
+         Data2(session, session, nonce, key),
+         M2(Data2, encrypted<AppData>),
+         Data3(session),
+         M3(Data3, encrypted<AppData>),
+         AppData(appdata);
+Protocol:
+Initiator {
+    new x: key;
+    let E_U = exp(g(), x);
+    new S_U: session;
+    new N_U: nonce;
+    new APP_1: appdata;
+}
+Initiator -> Responder: m1 = M1<S_U, N_U, E_U, APP_1>
+Responder {
+    let M1<S_U, N_U, E_U, APP_1> = m1;
+    new y: key;
+    let E_V = exp(g(), y);
+    new S_V: session;
+    new N_V: nonce;
+    new APP_2: appdata;
+    let data_2 = Data2<S_U, S_V, N_V, E_V>;
+    let aad_2 = hash(data_2);
+    let K = exp(E_U, y);
+    let K_2 = hkdf(K, aad_2, psk());
+}
+Responder -> Initiator: m2 = M2<data2, enc(AppData<APP_2>,K_2)>
+Initiator {
+    let M2<data_2, enc_2> = m2;
+    let Data2<%S_U, S_V, N_V, E_V> = data_2;
+    let aad_2 = hash(data_2);
+    let K = exp(E_V, x);
+    let K_2 = hkdf(K, aad_2, psk());
+    let APP_2 = dec(enc_2, K_2);
+    new APP_3: appdata;
+    let data_3 = Data3<S_V>;
+    let aad_3 = hash(AppData<APP_3>);
+    let K_3 = hkdf(K, aad_3, psk());
+}
+Initiator -> Responder: m3 = M3<data3, enc(AppData<APP_3>,K_3)>
+Responder {
+    let M3<data_3, enc_3> = m3;
+    let Data3<%S_V> = data_3;
+    let aad_3 = hash(AppData<APP_3>);
+    let K_3 = hkdf(K, aad_3, psk());
+    let APP_3 = dec(enc_3, K_3);
+}
+end
