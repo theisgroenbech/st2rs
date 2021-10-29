@@ -7,7 +7,7 @@
 %token COMMA COLON SEMI PCT ARROW AT
 %token LEFT_PAR RIGHT_PAR LEFT_ANGLE RIGHT_ANGLE LEFT_BRACE RIGHT_BRACE LEFT_BRACK RIGHT_BRACK
 %token EQ AND OR NOT DIV PLUS
-%token NEW LET EVENT IN END MATCH WITH DATA
+%token NEW LET EVENT IN END MATCH WITH DATA IF ELSE
 %token PROBLEM PRINCIPALS KNOWLEDGE TYPES FUNCTIONS EQUATIONS FORMATS PROTOCOL DISHONEST LEMMA
 %token EOF
 
@@ -108,6 +108,10 @@ let_bind:
   { Let(p, t, letb) }
 | EVENT; name = ID; LEFT_PAR; ts = term_list; RIGHT_PAR; SEMI; letb = let_bind
   { Event(name, ts, letb) }
+| IF; LEFT_PAR; cond = term; RIGHT_PAR; LEFT_BRACE; ifl = let_bind; RIGHT_BRACE; ELSE; LEFT_BRACE; ifr = let_bind; RIGHT_BRACE; letb = let_bind
+  { If(cond, ifl, ifr, letb) }
+| IF; LEFT_PAR; cond = term; RIGHT_PAR; LEFT_BRACE; ifl = let_bind; RIGHT_BRACE; letb = let_bind
+  { If(cond, ifl, LetEnd, letb) }
 | { LetEnd };
 
 global_type:

@@ -52,6 +52,8 @@ rule read =
   | "match"  { MATCH }
   | "with"   { WITH }
   | "data"   { DATA }
+  | "if"     { IF }
+  | "else"   { ELSE }
   | "dishonest" { DISHONEST }
   | "Problem" { PROBLEM }
   | "Principals" { PRINCIPALS }
