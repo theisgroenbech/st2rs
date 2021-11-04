@@ -2,7 +2,7 @@ Problem: DiffieHellman;
 Principals: Alice, Bob;
 Types: key;
 Functions: exp(key, key) -> key, g() -> key; 
-Equations: exp(exp(g,y),x) = exp(exp(g,x),y);
+Equations: exp(exp(g(),y),x) = exp(exp(g(),x),y);
 Formats: M1(key), M2(key);
 Protocol:
 Alice {

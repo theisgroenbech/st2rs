@@ -17,11 +17,12 @@ Functions: pk(skey) -> pkey,
            sign(skey, bitstring) -> bitstring,
            checksign(pkey, bitstring) -> bitstring,
            pzkp(id, skey, bitstring) -> bitstring,
-           checkzkp(pkey, bitstring, bitstring) -> bitstring;
+           checkzkp(pkey, bitstring, bitstring) -> bitstring,
+           OK() -> bitstring;
 Equations: decibe(encibe(mpk, uid, msg), extract(msk, uid)) = msg,
            blindextract(msk, blind(uid)) = extract(msk, uid),
            checksign(pk(sk), sign(sk, x)) = x,
-           checkzkp(cpk, blind(uid), pzkp(uid, csk, blind(uid))) = OK;
+           checkzkp(pk(sk), blind(uid), pzkp(uid, sk, sign(sk, blind(uid)))) = OK();
 Formats: M1(bitstring),
          M2(bitstring, bitstring),
          M3(bitstring),
