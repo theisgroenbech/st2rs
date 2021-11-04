@@ -6,7 +6,7 @@ Functions: exp(key, key) -> key,
            dec<F>(encrypted<F>, key) -> F,
            hash<F>(F) -> string,
            hkdf(key, string, key) -> key;
-           Equations: exp(exp(g,y),x) = exp(exp(g,x),y),
+Equations: exp(exp(g,y),x) = exp(exp(g,x),y),
            dec(enc(x,y),y) = x;
 Formats: M1(session, nonce, key, appdata),
          Data2(session, session, nonce, key),
