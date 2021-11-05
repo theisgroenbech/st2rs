@@ -46,8 +46,8 @@ and local_let_bind types g =
 
 (* Show global types *)
 and show_global_type2 = function
-    Send(p, q, x, t, g) -> "SEND: " ^ "from (" ^ p ^ ") to (" ^ q ^ "): name: " ^ x ^ " = " ^ show_term t ^ "\n" ^ show_global_type2 g
-  | Branch(p, q, t, branches) ->
+    Send(p, q, _, x, t, g) -> "SEND: " ^ "from (" ^ p ^ ") to (" ^ q ^ "): name: " ^ x ^ " = " ^ show_term t ^ "\n" ^ show_global_type2 g
+  | Branch(p, q, _, t, branches) ->
     "MATCH"^ p ^ "->" ^ q ^ ": match " ^ show_term t ^ " with {\n" ^ show_branches branches ^ "}\n"
   | Compute(p, letb, g) ->
     p ^ " {\n" ^ show_let_bind letb ^ "}\n" ^ show_global_type2 g
@@ -66,9 +66,9 @@ and unwrapGlobal global local =
 
 and to_local_type global_type participant =
   match global_type with
-    Send(sender, reciever, x, t, g) when participant = sender -> LSend(sender, t, to_local_type g participant)
-  | Send(sender, reciever, x, t, g) when participant = reciever -> LRecv(reciever, PVar(x), t, to_local_type g participant)
-  | Send(sender, reciever, x, t, g) -> to_local_type g participant
+    Send(sender, receiver, opt, x, t, g) when participant = sender -> LSend((if receiver < sender then receiver ^ sender else sender ^ receiver), opt, t, to_local_type g participant)
+  | Send(sender, receiver, opt, x, t, g) when participant = receiver -> LRecv((if receiver < sender then receiver ^ sender else sender ^ receiver), opt, PVar(x), t, to_local_type g participant)
+  | Send(_, _, _, _, _, g) -> to_local_type g participant
   | Compute(p, letb, g) when participant = p -> local_let_bind letb (to_local_type g participant)
   | Compute(p, letb, g) -> (to_local_type g participant)
   | DefGlobal(name, params, g, g') -> to_local_type (unwrapGlobal g' g) participant
@@ -76,18 +76,18 @@ and to_local_type global_type participant =
 
 and show_local_type local =
   match local with
-    LSend(p, t, local_type) -> "out(" ^ show_term t  ^") \n"^ show_local_type local_type
+    LSend(p, opt, t, local_type) -> "out(" ^ show_term t  ^") \n"^ show_local_type local_type
   | LNew (ident, data_type, local_type) -> "new " ^ ident ^ " : " ^ show_dtype data_type ^ ";\n" ^ show_local_type local_type
   | LLet (ident, term, local_type) -> "let " ^ show_pattern ident ^ " = " ^ show_term term ^ " in\n" ^ show_local_type local_type
-  | LRecv (principal, pattern, term, local_type) -> "let "^ show_pattern pattern  ^" = in() \n"^ show_local_type local_type
+  | LRecv (principal, opt, pattern, term, local_type) -> "let "^ show_pattern pattern  ^" = in() \n"^ show_local_type local_type
   | LEvent (ident, termlist, local_type) -> "event " ^ ident ^ "(" ^ show_term_list termlist ^ ");\n" ^ show_local_type local_type
   | LLocalEnd -> "0."
 
 
 and show_global_type_nr = function
-    Send(p, q, x, t, g) -> p ^ "->" ^ q ^ ": " ^ x ^ " = " ^ show_term t ^ " ..."
-  | Branch(p, q, t, branches) ->
-    p ^ "->" ^ q ^ ": match " ^ show_term t ^ " with {\n" ^ show_branches_nr branches ^ "}\n"
+    Send(p, q, opt, x, t, g) -> p ^ show_channel_option opt ^ q ^ ": " ^ x ^ " = " ^ show_term t ^ " ..."
+  | Branch(p, q, opt, t, branches) ->
+    p ^ show_channel_option opt ^ q ^ ": match " ^ show_term t ^ " with {\n" ^ show_branches_nr branches ^ "}\n"
   | Compute(p, letb, g) ->
     p ^ " {\n" ^ show_let_bind letb ^ "}...\n"
   | DefGlobal(name, params, g, g') ->

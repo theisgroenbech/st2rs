@@ -54,17 +54,20 @@ rule read =
   | "data"   { DATA }
   | "if"     { IF }
   | "else"   { ELSE }
-  | "dishonest" { DISHONEST }
-  | "Problem" { PROBLEM }
+  | "dishonest"  { DISHONEST }
+  | "Problem"    { PROBLEM }
   | "Principals" { PRINCIPALS }
-  | "Knowledge" { KNOWLEDGE }
-  | "Types"     { TYPES }
-  | "Functions" { FUNCTIONS }
-  | "Equations" { EQUATIONS }
-  | "Formats" { FORMATS }
-  | "Protocol" { PROTOCOL }
-  | "Lemma"   { LEMMA }
-  | "->"     { ARROW }
+  | "Knowledge"  { KNOWLEDGE }
+  | "Types"      { TYPES }
+  | "Functions"  { FUNCTIONS }
+  | "Equations"  { EQUATIONS }
+  | "Formats"    { FORMATS }
+  | "Protocol"   { PROTOCOL }
+  | "Lemma"      { LEMMA }
+  | "->"         { ARROW }
+  | "*->"        { AUTH }
+  | "->*"        { CONF }
+  | "*->*"       { AUTHCONF }
 
 
   | id       { let s = Lexing.lexeme lexbuf in ID(s) }

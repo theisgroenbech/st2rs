@@ -4,7 +4,7 @@
 %token <string> ID
 %token <int> NUM
 %token <string> STRING
-%token COMMA COLON SEMI PCT ARROW AT
+%token COMMA COLON SEMI PCT ARROW AT AUTH CONF AUTHCONF
 %token LEFT_PAR RIGHT_PAR LEFT_ANGLE RIGHT_ANGLE LEFT_BRACE RIGHT_BRACE LEFT_BRACK RIGHT_BRACK
 %token EQ AND OR NOT DIV PLUS
 %token NEW LET EVENT IN END MATCH WITH DATA IF ELSE
@@ -114,13 +114,19 @@ let_bind:
   { If(cond, ifl, LetEnd, letb) }
 | { LetEnd };
 
+channel_option:
+| ARROW { Public }
+| AUTH { Auth  }
+| CONF { Conf }
+| AUTHCONF { AuthConf };
+
 global_type:
-| prin1 = ID; ARROW; prin2 = ID; COLON; p = pattern; gt = global_type
-  { Branch(prin1, prin2, pattern_to_term p, [p, gt]) }
-| prin1 = ID; ARROW; prin2 = ID; COLON; x = ID; EQ; t = term; gt = global_type
-  { Send(prin1, prin2, x, t, gt ) }
-| prin1 = ID; ARROW; prin2 = ID; COLON; MATCH; t1 = term; WITH; LEFT_BRACE; branches = branch_list; RIGHT_BRACE
-  { Branch(prin1, prin2, t1, branches) }
+| prin1 = ID; chan = channel_option; prin2 = ID; COLON; p = pattern; gt = global_type
+  { Branch(prin1, prin2, chan, pattern_to_term p, [p, gt]) }
+| prin1 = ID; chan = channel_option; prin2 = ID; COLON; x = ID; EQ; t = term; gt = global_type
+  { Send(prin1, prin2, chan, x, t, gt ) }
+| prin1 = ID; chan = channel_option; prin2 = ID; COLON; MATCH; t1 = term; WITH; LEFT_BRACE; branches = branch_list; RIGHT_BRACE
+  { Branch(prin1, prin2, chan, t1, branches) }
 | prin = ID; LEFT_BRACE; lb = let_bind; RIGHT_BRACE; gt = global_type
   { Compute(prin, lb, gt) }
 | LET; name = ID; LEFT_PAR; params = separated_list(COMMA, param); RIGHT_PAR; EQ; gt1 = global_type; IN; gt2 = global_type

@@ -56,7 +56,7 @@ and equals_condition_patterns = function
   | (t1, t2)::tail -> OExp(OExp(translateTerm t1, Equals, translateTerm t2),And, equals_condition_patterns tail)
 
 and process = function
-    LSend(p, Form(fname, args), local_type) ->
+    LSend(_, opt, Form(fname, args), local_type) ->
     let send = toFunction "send" (Exps([Id(ID("c")); ((EStruct(ID(fname ), StructValues((List.map (fun a -> StructValue(translateTerm a)) args)))))])) in
     SDeclExp(DeclExp(fst(translatePattern (PVar "c") []), send))::process local_type
   | LNew (ident, data_type, local_type) -> (fresh ident data_type)::process local_type
@@ -77,9 +77,9 @@ and process = function
     else begin
       [SIfStatement(If((equals_condition_patterns conditions), BStmts(process local_type)))]
     end
-  | LRecv (principal, PVar(x), term, LLet (PForm(fname, args), Var(xx), local_type)) ->
+  | LRecv (_, opt, PVar(x), term, LLet (PForm(fname, args), Var(xx), local_type)) ->
     SDeclExp(DeclExp((ID("(c," ^x ^ ")")), toFunction "recv" (Id(ID("c")))))::SDeclExp(PatrExp(toStructPattern fname args, Id(ID(xx))))::process local_type
-  | LRecv (principal, PVar(x), term, local_type) ->  SDeclExp(DeclExp((ID(x)), toFunction ("recv") (Id(ID("c")))))::process local_type
+  | LRecv (_, opt, PVar(x), term, local_type) ->  SDeclExp(DeclExp((ID(x)), toFunction ("recv") (Id(ID("c")))))::process local_type
   | LEvent (ident, term, local_type) -> process local_type
   | LLocalEnd -> [SExp(toFunction "close" (Id(ID("c"))))]
   | _ -> [End]

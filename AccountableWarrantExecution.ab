@@ -22,7 +22,7 @@ Functions: pk(skey) -> pkey,
 Equations: decibe(encibe(mpk, uid, msg), extract(msk, uid)) = msg,
            blindextract(msk, blind(uid)) = extract(msk, uid),
            checksign(pk(sk), sign(sk, x)) = x,
-           checkzkp(pk(sk), blind(uid), pzkp(uid, sk, sign(sk, blind(uid)))) = OK();
+           checkzkp(pk(sk), blind(uid), pzkp(uid, sk, sign(sk, blind(uid)))) = OK;
 Formats: M1(bitstring),
          M2(bitstring, bitstring),
          M3(bitstring),
@@ -33,15 +33,15 @@ Source {
     new msg: bitstring;
     let ct = encibe(pkibe(msk), uid, msg);
 }
-Source -> Investigator: x = M1<ct>
+Source *->* Investigator: x = M1<ct>
 Investigator {
     let M1<ct> = x;
     let blindid = blind(uid);
     let signedid = sign(isk, blindid);
     let zkp = pzkp(uid, isk, signedid);
 }
-Investigator -> Log: x = M2<signedid, zkp>
-Investigator -> Decryptor: x = M3<blindid>
+Investigator *->* Log: x = M2<signedid, zkp>
+Investigator *->* Decryptor: x = M3<blindid>
 Log {
     let M2<signedid, zkp> = x;
 }
@@ -53,7 +53,7 @@ Decryptor {
         let sk = blindextract(msk, blindid);
     }
 }
-Decryptor -> Investigator: z = M5<sk>
+Decryptor *->* Investigator: z = M5<sk>
 Investigator {
     let M5<sk> = z;
     let msg = decibe(ct, sk);

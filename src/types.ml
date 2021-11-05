@@ -50,14 +50,17 @@ let rec binds = function
   | PMatch t -> []
   | PFunc(_, args) | PForm(_, args) | PTuple args -> List.concat (List.map binds args)
 
-(* Channel options / Bullet notation
-type channel_options = { authentic: bool; secret: bool }
-*)
+(* Channel options / Bullet notation *)
+type channel_option =
+  Public
+  | Auth
+  | Conf
+  | AuthConf
 
 (* Global types: p -> q *)
 type global_type =
-    Send of principal * principal * ident * term * global_type
-  | Branch of principal * principal * term * (pattern * global_type) list
+    Send of principal * principal * channel_option * ident * term * global_type
+  | Branch of principal * principal * channel_option * term * (pattern * global_type) list
   | Compute of principal * let_bind * global_type
   | DefGlobal of ident * (ident * principal) list * global_type * global_type
   | CallGlobal of ident * term list
@@ -65,8 +68,8 @@ type global_type =
 
 (* Local Type *)
 type local_type =
-    LSend of principal * term * local_type
-  | LRecv of principal * pattern * term * local_type
+    LSend of ident * channel_option * term * local_type
+  | LRecv of ident * channel_option * pattern * term * local_type
   | LSelect of principal * (term * local_type) list
   | LBranch of principal * (pattern * local_type) list
   | LNew of ident * data_type * local_type
@@ -142,11 +145,17 @@ and show_let_bind = function
   | If(cond, ifl, ifr, letb) -> "if (" ^ show_term cond ^ ") {\n" ^ show_let_bind ifl ^ "} else {\n" ^ show_let_bind ifr ^ "}" ^ show_let_bind letb
   | LetEnd -> ""
 
+and show_channel_option = function
+    Public   -> " -> "
+  | Auth     -> " *-> "
+  | Conf     -> " ->* "
+  | AuthConf -> " *->* "
+
 (* Show global types *)
 and show_global_type = function
-  Send(p, q, x, t, g) -> p ^ "->" ^ q ^ ": " ^ x ^ " = " ^ show_term t ^ "\n" ^ show_global_type g
-| Branch(p, q, t, branches) ->
-  p ^ "->" ^ q ^ ": match " ^ show_term t ^ " with {\n" ^ show_branches branches ^ "}\n"
+  Send(p, q, opt, x, t, g) -> p ^ show_channel_option opt ^ q ^ ": " ^ x ^ " = " ^ show_term t ^ "\n" ^ show_global_type g
+| Branch(p, q, opt, t, branches) ->
+  p ^ show_channel_option opt ^ q ^ ": match " ^ show_term t ^ " with {\n" ^ show_branches branches ^ "}\n"
 | Compute(p, letb, g) ->
   p ^ " {\n" ^ show_let_bind letb ^ "}\n" ^ show_global_type g
 | DefGlobal(name, params, g, g') ->
@@ -156,9 +165,9 @@ and show_global_type = function
 | GlobalEnd -> "end\n"
 
 and show_global_type_nr = function
-  Send(p, q, x, t, g) -> p ^ "->" ^ q ^ ": " ^ x ^ " = " ^ show_term t ^ " ..."
-| Branch(p, q, t, branches) ->
-  p ^ "->" ^ q ^ ": match " ^ show_term t ^ " with {\n" ^ show_branches_nr branches ^ "}\n"
+  Send(p, q, opt, x, t, g) -> p ^ show_channel_option opt ^ q ^ ": " ^ x ^ " = " ^ show_term t ^ " ..."
+| Branch(p, q, opt, t, branches) ->
+  p ^ show_channel_option opt ^ q ^ ": match " ^ show_term t ^ " with {\n" ^ show_branches_nr branches ^ "}\n"
 | Compute(p, letb, g) ->
   p ^ " {\n" ^ show_let_bind letb ^ "}...\n"
 | DefGlobal(name, params, g, g') ->
@@ -237,8 +246,8 @@ let rec print_sep = function
 let mscgen (pr:problem): unit =
   let last l = List.nth l (List.length l - 1) in
   let rec mscglobal = function
-  | Send(p, q, x, t, g) -> p ^ "->" ^ q ^ " [label=\"" ^ x ^ " = " ^ show_term t ^ "\"];\n" ^ mscglobal g
-  | Branch(p, q, t, branches) ->
+  | Send(p, q, _, x, t, g) -> p ^ "->" ^ q ^ " [label=\"" ^ x ^ " = " ^ show_term t ^ "\"];\n" ^ mscglobal g
+  | Branch(p, q, _, t, branches) ->
     let rec mscbranches = function
     | [] -> ""
     | ((pat, g)::branches) ->
