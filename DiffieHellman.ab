@@ -7,13 +7,13 @@ Formats: M1(key), M2(key);
 Protocol:
 Alice {
     new x: key;
-    let gx = exp(g(), x);
+    let gx = exp(g, x);
 }
 Alice -> Bob: a = M1<gx>
 Bob {
     let M1<gx> = a;
     new y: key;
-    let gy = exp(g(), y);
+    let gy = exp(g, y);
     let gxy = exp(gx, y);
 }
 Bob -> Alice: b = M2<gy>
