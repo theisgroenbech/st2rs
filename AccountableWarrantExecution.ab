@@ -49,8 +49,8 @@ Log -> Decryptor: y = M4<zkp>
 Decryptor {
     let M3<blindid> = x;
     let M4<zkp> = y;
-    if (checkzkp(pk(isk), blindid, zkp) = OK) {
-        let sk = blindextract(msk, blindid);
+    checkzkp(pk(isk), blindid, zkp)
+    let sk = blindextract(msk, blindid);
     }
 }
 Decryptor *->* Investigator: z = M5<sk>

@@ -3,7 +3,7 @@ Principals: Alice, Bob;
 Types: key;
 Functions: exp(key, key) -> key, g() -> key; 
 Equations: exp(exp(g(),y),x) = exp(exp(g(),x),y);
-Formats: M1(key), M2(key);
+Formats: M1(key), M2(key), M3(key);
 Protocol:
 Alice {
     new x: key;
@@ -19,7 +19,14 @@ Bob {
 Bob -> Alice: b = M2<gy>
 Alice {
     let M2<gy> = b;
-    let gxy = exp(gy, x);
+    let gyx = exp(gy, x);
+}
+Alice -> Bob: c = M3<gyx>
+Bob {
+    let M3<gyx> = c;
+    new t: key;
+    new f: key;
+    let result = if(gxy = gyx, t, f);
 }
 end
 
