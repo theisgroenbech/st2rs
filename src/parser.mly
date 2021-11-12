@@ -7,7 +7,7 @@
 %token COMMA COLON SEMI PCT ARROW AT AUTH CONF AUTHCONF
 %token LEFT_PAR RIGHT_PAR LEFT_ANGLE RIGHT_ANGLE LEFT_BRACE RIGHT_BRACE LEFT_BRACK RIGHT_BRACK
 %token EQ AND OR NOT DIV PLUS
-%token NEW LET EVENT IN END MATCH WITH DATA IF ELSE
+%token NEW LET EVENT IN END MATCH WITH DATA IF
 %token PROBLEM PRINCIPALS KNOWLEDGE TYPES FUNCTIONS EQUATIONS FORMATS PROTOCOL DISHONEST LEMMA
 %token EOF
 
@@ -70,7 +70,9 @@ term:
 | NOT; t = term
   { Not(t) }
 | LEFT_PAR; t = term; RIGHT_PAR
-  { t };
+  { t }
+| IF; LEFT_PAR; cond = term; COMMA; tterm = term; COMMA; fterm = term; RIGHT_PAR
+  { If(cond, tterm, fterm) };
 
 term_list:
 | l = separated_list(COMMA, term)
@@ -85,7 +87,8 @@ data_type_list:
     { l };
 
 pattern:
-| LEFT_PAR; p = pattern; RIGHT_PAR {p}
+| LEFT_PAR; p = pattern; RIGHT_PAR 
+  { p }
 | name = ID
   { PVar(name) }
 | PCT; t = term
@@ -108,10 +111,6 @@ let_bind:
   { Let(p, t, letb) }
 | EVENT; name = ID; LEFT_PAR; ts = term_list; RIGHT_PAR; SEMI; letb = let_bind
   { Event(name, ts, letb) }
-| IF; LEFT_PAR; cond = term; RIGHT_PAR; LEFT_BRACE; ifl = let_bind; RIGHT_BRACE; ELSE; LEFT_BRACE; ifr = let_bind; RIGHT_BRACE; letb = let_bind
-  { If(cond, ifl, ifr, letb) }
-| IF; LEFT_PAR; cond = term; RIGHT_PAR; LEFT_BRACE; ifl = let_bind; RIGHT_BRACE; letb = let_bind
-  { If(cond, ifl, LetEnd, letb) }
 | { LetEnd };
 
 channel_option:

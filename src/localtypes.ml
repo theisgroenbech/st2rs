@@ -39,8 +39,6 @@ and local_let_bind types g =
       New(name, data_type, letb) -> LNew(name, data_type, local_let_bind letb g)
     | Let(p, t, letb) -> LLet(p, t, local_let_bind letb g)
     | LetEnd -> g
-    | If(cond, ifl, LetEnd, letb) -> LIf(cond, local_let_bind ifl g, LLocalEnd, local_let_bind letb g) 
-    | If(cond, ifl, ifr, letb) -> LIf(cond, local_let_bind ifl g, local_let_bind ifr g, local_let_bind letb g) 
     | Event (ident, terms, letb) -> LEvent(ident, terms, local_let_bind letb g)
 
 
